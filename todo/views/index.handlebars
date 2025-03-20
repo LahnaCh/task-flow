@@ -1,0 +1,257 @@
+<!-- En-tête simplifié -->
+<header class="app-header">
+    <h1>Gestionnaire de tâches</h1>
+    <div class="header-actions">
+        <button id="new-task-btn">+ Nouvelle tâche</button>
+        <div class="filter-sort-container">
+            <select id="filter-priority">
+                <option value="">Filtrer par priorité</option>
+                <option value="Haute">Haute</option>
+                <option value="Moyenne">Moyenne</option>
+                <option value="Basse">Basse</option>
+            </select>
+            <select id="sort-by">
+                <option value="createdAt">Trier par date de création</option>
+                <option value="dueDate">Trier par date d'échéance</option>
+            </select>
+            <select id="sort-order">
+                <option value="asc">Ordre croissant</option>
+                <option value="desc">Ordre décroissant</option>
+            </select>
+        </div>
+    </div>
+</header>
+
+<!-- Conteneur principal -->
+<main class="task-board-container">
+    <div class="task-board">
+        <!-- Colonne "À faire" -->
+        <div class="task-column" data-status="À faire">
+            <div class="column-header">
+                <h2>À faire</h2>
+                <span class="task-count" id="todo-count">0</span>
+            </div>
+            <div class="column-content" id="todo-tasks">
+                {{#each tasks}}
+                    {{#if (eq this.status "À faire")}}
+                        <div class="task-card" data-id="{{this.id}}">
+                            <div class="task-header">
+                                <span class="task-priority priority-{{toLowerCase this.priority}}">{{this.priority}}</span>
+                                <div class="task-actions">
+                                    <button type="button" class="task-action history-task" title="Historique">📋</button>
+                                    <button type="button" class="task-action edit-task" title="Modifier">✏️</button>
+                                    <button type="button" class="task-action delete-task" title="Supprimer">🗑️</button>
+                                </div>
+                            </div>
+                            <h3 class="task-title">{{this.title}}</h3>
+                            <p class="task-description">{{truncate this.description 80}}</p>
+                            {{#if this.dueDate}}
+                                <div class="task-due-date">
+                                    <span class="due-date-label">Échéance :</span>
+                                    <span class="due-date-value">{{formatDateTime this.dueDate}}</span>
+                                </div>
+                            {{/if}}
+                            <div class="task-footer">
+                                <div class="task-assignee">Assigné à: {{this.assignee.name}}</div>
+                                <div class="task-status-actions">
+                                </div>
+                            </div>
+                        </div>
+                    {{/if}}
+                {{/each}}
+            </div>
+        </div>
+
+        <!-- Colonne "En cours" -->
+        <div class="task-column" data-status="En cours">
+            <div class="column-header">
+                <h2>En cours</h2>
+                <span class="task-count" id="in-progress-count">0</span>
+            </div>
+            <div class="column-content" id="in-progress-tasks">
+                {{#each tasks}}
+                    {{#if (eq this.status "En cours")}}
+                        <div class="task-card" data-id="{{this.id}}">
+                            <div class="task-header">
+                                <span class="task-priority priority-{{toLowerCase this.priority}}">{{this.priority}}</span>
+                                <div class="task-actions">
+                                    <button type="button" class="task-action history-task" title="Historique">📋</button>
+                                    <button type="button" class="task-action edit-task" title="Modifier">✏️</button>
+                                    <button type="button" class="task-action delete-task" title="Supprimer">🗑️</button>
+                                </div>
+                            </div>
+                            <h3 class="task-title">{{this.title}}</h3>
+                            <p class="task-description">{{truncate this.description 80}}</p>
+                            {{#if this.dueDate}}
+                                <div class="task-due-date">
+                                    <span class="due-date-label">Échéance :</span>
+                                    <span class="due-date-value">{{formatDateTime this.dueDate}}</span>
+                                </div>
+                            {{/if}}
+                            <div class="task-footer">
+                                <div class="task-assignee">Assigné à: {{this.assignee.name}}</div>
+                                <div class="task-status-actions">
+                                </div>
+                            </div>
+                        </div>
+                    {{/if}}
+                {{/each}}
+            </div>
+        </div>
+
+        <!-- Colonne "En révision" -->
+        <div class="task-column" data-status="En révision">
+            <div class="column-header">
+                <h2>En révision</h2>
+                <span class="task-count" id="review-count">0</span>
+            </div>
+            <div class="column-content" id="review-tasks">
+                {{#each tasks}}
+                    {{#if (eq this.status "En révision")}}
+                        <div class="task-card" data-id="{{this.id}}">
+                            <div class="task-header">
+                                <span class="task-priority priority-{{toLowerCase this.priority}}">{{this.priority}}</span>
+                                <div class="task-actions">
+                                    <button type="button" class="task-action history-task" title="Historique">📋</button>
+                                    <button type="button" class="task-action edit-task" title="Modifier">✏️</button>
+                                    <button type="button" class="task-action delete-task" title="Supprimer">🗑️</button>
+                                </div>
+                            </div>
+                            <h3 class="task-title">{{this.title}}</h3>
+                            <p class="task-description">{{truncate this.description 80}}</p>
+                            {{#if this.dueDate}}
+                                <div class="task-due-date">
+                                    <span class="due-date-label">Échéance :</span>
+                                    <span class="due-date-value">{{formatDateTime this.dueDate}}</span>
+                                </div>
+                            {{/if}}
+                            <div class="task-footer">
+                                <div class="task-assignee">Assigné à: {{this.assignee.name}}</div>
+                                <div class="task-status-actions">
+                                </div>
+                            </div>
+                        </div>
+                    {{/if}}
+                {{/each}}
+            </div>
+        </div>
+
+        <!-- Colonne "Terminée" -->
+        <div class="task-column" data-status="Terminée">
+            <div class="column-header">
+                <h2>Terminée</h2>
+                <span class="task-count" id="done-count">0</span>
+            </div>
+            <div class="column-content" id="done-tasks">
+                {{#each tasks}}
+                    {{#if (eq this.status "Terminée")}}
+                        <div class="task-card" data-id="{{this.id}}">
+                            <div class="task-header">
+                                <span class="task-priority priority-{{toLowerCase this.priority}}">{{this.priority}}</span>
+                                <div class="task-actions">
+                                    <button type="button" class="task-action history-task" title="Historique">📋</button>
+                                    <button type="button" class="task-action edit-task" title="Modifier">✏️</button>
+                                    <button type="button" class="task-action delete-task" title="Supprimer">🗑️</button>
+                                </div>
+                            </div>
+                            <h3 class="task-title">{{this.title}}</h3>
+                            <p class="task-description">{{truncate this.description 80}}</p>
+                            {{#if this.dueDate}}
+                                <div class="task-due-date">
+                                    <span class="due-date-label">Échéance :</span>
+                                    <span class="due-date-value">{{formatDateTime this.dueDate}}</span>
+                                </div>
+                            {{/if}}
+                            <div class="task-footer">
+                                <div class="task-assignee">Assigné à: {{this.assignee.name}}</div>
+                                <div class="task-status-actions">
+                                </div>
+                            </div>
+                        </div>
+                    {{/if}}
+                {{/each}}
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Popup pour créer/modifier une tâche -->
+<div id="task-popup" class="popup">
+    <div class="popup-content">
+        <form id="task-form">
+            <h2 id="popup-title">Nouvelle tâche</h2>
+            
+            <div class="form-group">
+                <label for="task-title">Titre</label>
+                <input type="text" id="task-title" name="title" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="task-description">Description</label>
+                <textarea id="task-description" name="description" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="task-priority">Priorité</label>
+                <select id="task-priority" name="priority" required>
+                    <option value="Basse">Basse</option>
+                    <option value="Moyenne">Moyenne</option>
+                    <option value="Haute">Haute</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="task-status">Statut</label>
+                <select id="task-status" name="status" required>
+                    <option value="À faire">À faire</option>
+                    <option value="En cours">En cours</option>
+                    <option value="En révision">En révision</option>
+                    <option value="Terminée">Terminée</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="task-due-date">Date d'échéance</label>
+                <input type="datetime-local" id="task-due-date" name="dueDate" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" id="submit-task" class="btn btn-primary">Créer</button>
+                <button type="button" id="close-popup" class="btn btn-secondary">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Popup pour l'historique d'une tâche -->
+<div id="history-popup" class="popup">
+    <div class="popup-content">
+        <div class="popup-header">
+            <h2>Historique de la tâche</h2>
+            <button id="close-history-popup" class="close-popup">&times;</button>
+        </div>
+        <div class="popup-body">
+            <div id="history-container">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Champ</th>
+                            <th>Ancienne valeur</th>
+                            <th>Nouvelle valeur</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- Les entrées d'historique seront ajoutées ici dynamiquement -->
+                    </tbody>
+                </table>
+                <div id="no-history-message" style="display: none;">
+                    <p>Aucun historique disponible pour cette tâche.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conteneur pour les notifications -->
+<div id="notifications-container"></div>

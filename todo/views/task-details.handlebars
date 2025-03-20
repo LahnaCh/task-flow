@@ -1,0 +1,85 @@
+<div class="task-details-container">
+    <div class="details-header">
+        <h1>Détails de la tâche</h1>
+        <div class="header-actions">
+            <a href="/" class="btn btn-secondary">Retour au tableau</a>
+            <a href="/tasks/{{task.id}}/edit" class="btn btn-primary">Modifier</a>
+        </div>
+    </div>
+
+    <div class="task-details-card">
+        <div class="task-header">
+            <h2 class="task-title">{{task.title}}</h2>
+            <span class="task-priority priority-{{toLowerCase task.priority}}">{{task.priority}}</span>
+        </div>
+
+        <div class="task-info">
+            <div class="info-row">
+                <span class="info-label">Statut:</span>
+                <span class="task-status status-{{toLowerCase task.status}}">{{task.status}}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Assigné à:</span>
+                <span>{{task.assignee.name}}</span>
+            </div>
+            
+            {{#if task.dueDate}}
+            <div class="info-row">
+                <span class="info-label">Date limite:</span>
+                <span class="{{#if (isPastDue task.dueDate)}}past-due{{/if}}">{{formatDate task.dueDate}}</span>
+            </div>
+            {{/if}}
+            
+            <div class="info-row">
+                <span class="info-label">Créée le:</span>
+                <span>{{formatDateTime task.createdAt}}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Dernière mise à jour:</span>
+                <span>{{formatDateTime task.updatedAt}}</span>
+            </div>
+        </div>
+
+        <div class="task-description-section">
+            <h3>Description</h3>
+            <div class="task-description">
+                {{task.description}}
+            </div>
+        </div>
+
+        <div class="task-actions">
+            <button id="change-status" class="btn btn-primary" data-id="{{task.id}}" data-current-status="{{task.status}}">
+                Changer le statut
+            </button>
+            <button id="delete-task" class="btn btn-danger" data-id="{{task.id}}">
+                Supprimer la tâche
+            </button>
+        </div>
+    </div>
+
+    <div class="task-history-section">
+        <h3>Historique des modifications</h3>
+        <div class="history-list">
+            {{#if task.history.length}}
+                {{#each task.history}}
+                    <div class="history-item">
+                        <div class="history-time">{{formatDateTime this.timestamp}}</div>
+                        <div class="history-content">
+                            {{#if (eq this.field "creation")}}
+                                <span class="history-action">Création de la tâche</span>
+                            {{else}}
+                                <span class="history-field">{{this.field}}</span> modifié de 
+                                <span class="history-old-value">{{this.oldValue}}</span> à 
+                                <span class="history-new-value">{{this.newValue}}</span>
+                            {{/if}}
+                        </div>
+                    </div>
+                {{/each}}
+            {{else}}
+                <div class="no-history">Aucun historique disponible</div>
+            {{/if}}
+        </div>
+    </div>
+</div>

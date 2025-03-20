@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  priority    String    // "Faible", "Moyenne", "Élevée"
+  status      String    // "À faire", "En cours", "En révision", "Terminée"
+  dueDate     BigInt    // timestamp EPOCH en millisecondes (obligatoire)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  assigneeId  Int       @default(1) // Par défaut, assigné à l'utilisateur avec id=1
+  assignee    User      @relation(fields: [assigneeId], references: [id])
+  history     History[]
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String
+  name  String  @default("Utilisateur")
+  tasks Task[]
+}
+
+model History {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  field     String   // Champ modifié (title, description, priority, status, dueDate, assigneeId)
+  oldValue  String?  // Ancienne valeur
+  newValue  String   // Nouvelle valeur
+  timestamp DateTime @default(now())
+}

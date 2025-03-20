@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- CSS de base -->
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/index.css" />
+        <link rel="stylesheet" href="/css/popup.css" />
+        <link rel="stylesheet" href="/css/notifications.css" />
+        
+        {{#each styles}}
+            <link rel="stylesheet" href={{this}} />
+        {{/each}}
+
+        <title>{{titre}} | TaskFlow</title>
+    </head>
+    <body>
+        <header class="app-header">
+            <div class="logo">
+                <h1>TaskFlow</h1>
+            </div>
+            <nav class="main-nav">
+                <a href="/" class="nav-link">Tableau de bord</a> 
+            </nav>
+            <div class="user-info">
+                <span>Utilisateur #1</span>
+            </div>
+        </header>
+        <main>
+            {{{body}}}
+        </main>
+        <footer>
+    &copy; 2025 TaskFlow - Gestion de tâches collaboratives.  
+    Développé par Lahna Chemlal, Lydia Mahdjat, Kousseila Iggui, Hamza Ouerdane.
+</footer>
+
+        
+        <!-- JavaScript de base - Chargés une seule fois -->
+        <script src="/js/popup.js" id="popup-script"></script>
+        <script src="/js/index.js" id="index-script"></script>
+        
+        <!-- Scripts supplémentaires spécifiques aux pages -->
+        {{#each scripts}}
+            <script src={{this}} type="module"></script>
+        {{/each}}
+        
+        <!-- Script pour éviter les doubles chargements -->
+        <script src="/js/script-loader.js"></script>
+        
+        <!-- Script pour l'historique -->
+        <script src="/js/history.js"></script>
+    </body>
+</html>
