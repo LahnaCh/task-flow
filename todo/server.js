@@ -11,9 +11,14 @@ import helmet from "helmet";
 import compression from "compression";
 import cors from "cors";
 import cspOption from "./csp-options.js";
+// Importations de la session
+import session from 'express-session';
+//Importation de la memorystore
+import memorystore from 'memorystore';
 
 // Création du serveur express
 const app = express();
+const MemoryStore = memorystore(session);
 
 // Configuration de Handlebars avec les helpers personnalisés
 const hbs = engine({
@@ -70,6 +75,14 @@ app.use(helmet(cspOption));
 app.use(compression());
 app.use(cors());
 app.use(json());
+app.use(session({
+    cookie: { maxAge: 3600000 },
+    name: process.env.npm_package_name,
+    store: new MemoryStore({ checkPeriod: 3600000 }),
+    resave: false,
+    saveUninitialized: false,
+    secret: process.env.SESSION_SECRET
+}));
 
 //Middeleware integre a express pour gerer la partie static du serveur
 //le dossier 'public' est la partie statique de notre serveur
