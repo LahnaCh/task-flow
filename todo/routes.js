@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { getTasks, getTaskById, createTask, updateTask, deleteTask, getTaskHistory } from "./model/task.js";
+import passport from "passport";
 
 const router = Router();
 
@@ -190,6 +191,11 @@ router.get("/api/tasks/history", async (request, response) => {
             error: "Une erreur est survenue lors de la récupération de l'historique."
         });
     }
+});
+
+// Route de connexion
+router.post("/login", passport.authenticate("local"), (request, response) => {
+    response.status(200).json({ message: "Connexion réussie" });
 });
 
 export default router;
