@@ -194,6 +194,30 @@ router.get("/api/tasks/history", async (request, response) => {
     }
 });
 
+// Routes d'authentification - Pages
+
+// Route pour afficher la page de connexion
+router.get("/login", (request, response) => {
+    response.render("login", {
+        titre: "Connexion",
+        styles: ["./css/style.css"]
+    });
+});
+
+// Route pour afficher la page d'inscription
+router.get("/register", (request, response) => {
+    response.render("register", {
+        titre: "Inscription",
+        styles: ["./css/style.css"]
+    });
+});
+
+// Route de déconnexion temporaire (simple redirection)
+router.get("/logout", (request, response) => {
+    // Dans une vraie application, on déconnecterait l'utilisateur ici
+    response.redirect("/");
+});
+
 // Route de connexion
 router.post("/login", passport.authenticate("local"), (request, response) => {
     response.status(200).json({ message: "Connexion réussie" });
