@@ -14,15 +14,21 @@
     
     <div class="header-actions">
         <div class="auth-buttons">
-            <a href="/login" class="auth-btn" id="login-btn">
-                <i class="fas fa-sign-in-alt"></i> Connexion
-            </a>
-            <a href="/register" class="auth-btn" id="register-btn">
-                <i class="fas fa-user-plus"></i> Inscription
-            </a>
-            <a href="/logout" class="auth-btn" id="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Déconnexion
-            </a>
+            {{#if user}}
+                <span class="user-info">
+                    <i class="fas fa-user"></i> {{user.name}}
+                </span>
+                <a href="/logout" class="auth-btn" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            {{else}}
+                <a href="/login" class="auth-btn" id="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </a>
+                <a href="/register" class="auth-btn" id="register-btn">
+                    <i class="fas fa-user-plus"></i> Inscription
+                </a>
+            {{/if}}
         </div>
     </div>
 </header>
