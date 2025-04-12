@@ -956,3 +956,19 @@ h1 {
         width: 100%;
     }
 }
+
+.user-info {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    font-weight: 500;
+    color: white;
+}
+
+.user-info i {
+    margin-right: 0.5rem;
+    opacity: 0.9;
+}

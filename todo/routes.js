@@ -16,12 +16,14 @@ router.get("/", async (request, response) => {
             styles: ["./css/style.css", "./css/index.css", "./css/popup.css", "./css/notifications.css"],
             scripts: ["./js/index.js", "./js/popup.js"],
             tasks: tasks,
+            user: request.user
         });
     } catch (error) {
         console.error("Erreur lors du chargement des tâches:", error);
         response.status(500).render("error", {
             titre: "Erreur",
-            message: "Une erreur est survenue lors du chargement des tâches."
+            message: "Une erreur est survenue lors du chargement des tâches.",
+            user: request.user
         });
     }
 });
@@ -200,7 +202,8 @@ router.get("/api/tasks/history", async (request, response) => {
 router.get("/login", (request, response) => {
     response.render("login", {
         titre: "Connexion",
-        styles: ["./css/style.css", "./css/auth.css"]
+        styles: ["./css/style.css", "./css/auth.css"],
+        user: request.user
     });
 });
 
@@ -208,14 +211,33 @@ router.get("/login", (request, response) => {
 router.get("/register", (request, response) => {
     response.render("register", {
         titre: "Inscription",
-        styles: ["./css/style.css", "./css/auth.css"]
+        styles: ["./css/style.css", "./css/auth.css"],
+        user: request.user
     });
 });
 
-// Route de déconnexion temporaire (simple redirection)
-router.get("/logout", (request, response) => {
-    // Dans une vraie application, on déconnecterait l'utilisateur ici
-    response.redirect("/");
+// Route de déconnexion
+router.get("/logout", (request, response, next) => {
+    console.log("Tentative de déconnexion");
+    
+    // Vérifier si l'utilisateur est connecté
+    if (request.isAuthenticated()) {
+        console.log("Utilisateur authentifié, déconnexion");
+        request.logout((err) => {
+            if (err) {
+                console.log("Erreur lors de la déconnexion:", err);
+                return next(err);
+            }
+            
+            console.log("Déconnexion réussie, redirection");
+            // Rediriger vers la page d'accueil
+            response.redirect("/");
+        });
+    } else {
+        console.log("Utilisateur non authentifié, redirection simple");
+        // Si l'utilisateur n'est pas connecté, rediriger simplement
+        response.redirect("/");
+    }
 });
 
 // Route de connexion

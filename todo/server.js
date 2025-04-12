@@ -92,6 +92,15 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Middleware pour passer l'utilisateur connecté aux templates
+app.use((request, response, next) => {
+    response.locals.user = request.user;
+    next();
+});
+
+// Middleware pour parser les données des formulaires
+app.use(express.urlencoded({ extended: true })); 
+
 //Middeleware integre a express pour gerer la partie static du serveur
 //le dossier 'public' est la partie statique de notre serveur
 app.use(express.static("public"));
