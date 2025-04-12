@@ -15,6 +15,10 @@ import cspOption from "./csp-options.js";
 import session from 'express-session';
 //Importation de la memorystore
 import memorystore from 'memorystore';
+// Importation de Passport
+import passport from "passport";
+// Importation de l'authentification
+import "./authentification.js";
 
 // Création du serveur express
 const app = express();
@@ -83,6 +87,10 @@ app.use(session({
     saveUninitialized: false,
     secret: process.env.SESSION_SECRET
 }));
+
+// Initialisation de Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 //Middeleware integre a express pour gerer la partie static du serveur
 //le dossier 'public' est la partie statique de notre serveur
