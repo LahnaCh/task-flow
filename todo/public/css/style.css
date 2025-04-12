@@ -54,34 +54,66 @@ body {
 .app-header {
     background: linear-gradient(135deg, #2196F3, #1976D2);
     color: white;
-    padding: 1rem 2rem;
+    padding: 1.5rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
 }
 
 .app-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 600;
     margin: 0;
+    letter-spacing: 0.03em;
+    margin-right: 2rem;
 }
 
 .header-actions {
     display: flex;
-    gap: 1rem;
+    gap: 2rem;
     align-items: center;
 }
 
+.filter-sort-container {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    background-color: var(--gray-100);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--gray-300);
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 180px;
+}
+
+.filter-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Bouton nouvelle tâche */
 #new-task-btn {
     background-color: white;
     color: #2196F3;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1.2rem;
     border-radius: 4px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
+    font-size: 0.95rem;
+    margin-right: 1rem;
 }
 
 #new-task-btn:hover {
@@ -89,39 +121,114 @@ body {
     transform: translateY(-1px);
 }
 
-#filter-priority {
+/* Filtres */
+#filter-priority, #sort-by, #sort-order {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 0.5rem;
+    padding: 0.6rem 1rem;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
+    min-width: 150px;
 }
 
-#filter-priority option {
+#filter-priority option, #sort-by option, #sort-order option {
     background-color: white;
     color: #333;
+}
+
+/* Styles pour les boutons d'authentification */
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-left: 2rem;
+}
+
+.auth-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+#login-btn {
+    background-color: white;
+    color: #2196F3;
+}
+
+#register-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#logout-btn {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.auth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#login-btn:hover {
+    background-color: #f5f5f5;
+}
+
+#register-btn:hover {
+    background-color: #43A047;
+}
+
+#logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Style pour le conteneur principal */
 .task-board-container {
     max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    margin: 3rem auto;
+    padding: 0 2rem;
 }
 
 /* Style pour le tableau des tâches */
 .task-board {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
 }
 
 @media (max-width: 1200px) {
     .task-board {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .app-header {
+        padding: 1.2rem 1.5rem;
+    }
+    
+    .header-actions {
+        gap: 1.5rem;
+    }
+    
+    .filter-sort-container {
+        gap: 0.5rem;
+    }
+    
+    #filter-priority, #sort-by, #sort-order {
+        min-width: 120px;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .auth-buttons {
+        margin-left: 1rem;
     }
 }
 
@@ -137,14 +244,34 @@ body {
         padding: 1rem;
     }
     
+    .app-header h1 {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+    
     .header-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 1rem;
+    }
+    
+    .filter-sort-container {
         flex-direction: column;
         width: 100%;
     }
     
     #new-task-btn,
-    #filter-priority {
+    #filter-priority,
+    #sort-by,
+    #sort-order,
+    .auth-btn {
         width: 100%;
+    }
+    
+    .auth-buttons {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 1rem;
     }
 }
 
@@ -609,4 +736,176 @@ h1 {
 #error-input {
     color: var(--danger-color);
     font-size: 1rem;
+}
+
+/* Container pour les boutons d'authentification dans la page principale */
+.auth-buttons-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: flex-end;
+}
+
+.auth-buttons-container .auth-btn {
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-buttons-container #login-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+.auth-buttons-container #register-btn {
+    background-color: white;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.auth-buttons-container #logout-btn {
+    background-color: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+}
+
+.auth-buttons-container .auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-buttons-container #login-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.auth-buttons-container #register-btn:hover {
+    background-color: rgba(3, 102, 214, 0.05);
+}
+
+.auth-buttons-container #logout-btn:hover {
+    background-color: var(--gray-300);
+}
+
+@media (max-width: 768px) {
+    .auth-buttons-container {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .auth-buttons-container .auth-btn {
+        width: 100%;
+    }
+}
+
+/* Container pour les actions de tâches (nouvelle tâche et filtres) */
+.task-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    padding-bottom: 1.5rem;
+    border: 2px solid var(--gray-300);
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.task-actions-container .filter-sort-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background-color: var(--gray-100);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--gray-300);
+}
+
+.task-actions-container #new-task-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.02em;
+}
+
+.task-actions-container #new-task-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.task-actions-container select {
+    padding: 0.6rem 1rem;
+    border-radius: 4px;
+    border: 2px solid var(--gray-400);
+    background-color: white;
+    font-size: 0.95rem;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    color: var(--gray-800);
+    font-weight: 500;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+.task-actions-container select:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.task-actions-container select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.2);
+}
+
+@media (max-width: 992px) {
+    .task-actions-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+    
+    .task-actions-container .filter-sort-container {
+        width: 100%;
+    }
+    
+    .filter-group {
+        min-width: 150px;
+        flex: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .task-actions-container .filter-sort-container {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .filter-group {
+        width: 100%;
+    }
+    
+    .task-actions-container #new-task-btn {
+        width: 100%;
+    }
 }
