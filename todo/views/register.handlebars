@@ -1,0 +1,37 @@
+<!-- Page d'inscription -->
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Inscription</h2>
+        
+        {{#if error}}
+        <div class="alert alert-danger">
+            {{error}}
+        </div>
+        {{/if}}
+        
+        <form action="/register" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required autofocus placeholder="Entrez votre email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-control" required placeholder="Créez un mot de passe">
+            </div>
+            
+            <div class="form-group">
+                <label for="name">Nom d'utilisateur</label>
+                <input type="text" id="name" name="name" class="form-control" required placeholder="Choisissez un nom d'utilisateur">
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">S'inscrire</button>
+            </div>
+            
+            <div class="auth-links">
+                <p>Déjà inscrit ? <a href="/login">Se connecter</a></p>
+            </div>
+        </form>
+    </div>
+</div> 
