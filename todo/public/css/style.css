@@ -142,7 +142,6 @@ body {
 .auth-buttons {
     display: flex;
     gap: 1rem;
-    margin-left: 2rem;
 }
 
 .auth-btn {
@@ -153,6 +152,9 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
 }
 
 #login-btn {
@@ -174,6 +176,7 @@ body {
 .auth-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
 }
 
 #login-btn:hover {
