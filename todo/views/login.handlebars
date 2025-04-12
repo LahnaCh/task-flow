@@ -1,0 +1,32 @@
+<!-- Page de connexion -->
+<div class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Connexion</h2>
+        
+        {{#if error}}
+        <div class="alert alert-danger">
+            {{error}}
+        </div>
+        {{/if}}
+        
+        <form action="/login" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Se connecter</button>
+            </div>
+            
+            <div class="auth-links">
+                <p>Pas encore inscrit ? <a href="/register">Créer un compte</a></p>
+            </div>
+        </form>
+    </div>
+</div> 
