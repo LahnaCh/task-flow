@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getTasks, getTaskById, createTask, updateTask, deleteTask, getTaskHistory } from "./model/task.js";
 import passport from "passport";
+import { createUser } from "./model/user.js";
 
 const router = Router();
 
@@ -196,6 +197,39 @@ router.get("/api/tasks/history", async (request, response) => {
 // Route de connexion
 router.post("/login", passport.authenticate("local"), (request, response) => {
     response.status(200).json({ message: "Connexion réussie" });
+});
+
+// Route d'inscription
+router.post("/register", async (request, response) => {
+    try {
+        const { email, password } = request.body;
+        
+        if (!email || !password) {
+            return response.status(400).json({
+                error: "L'email et le mot de passe sont requis"
+            });
+        }
+
+        const user = await createUser(email, password);
+        response.status(201).json({ message: "Inscription réussie" });
+    } catch (error) {
+        console.error("Erreur lors de l'inscription:", error);
+        response.status(500).json({
+            error: "Une erreur est survenue lors de l'inscription"
+        });
+    }
+});
+
+// Route de déconnexion
+router.post("/logout", (request, response) => {
+    request.logout((err) => {
+        if (err) {
+            return response.status(500).json({
+                error: "Une erreur est survenue lors de la déconnexion"
+            });
+        }
+        response.status(200).json({ message: "Déconnexion réussie" });
+    });
 });
 
 export default router;
