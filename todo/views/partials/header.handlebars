@@ -1,10 +1,28 @@
 <header class="app-header">
-    <h1>Gestionnaire de tâches</h1>
+    <div class="header-left">
+        <a href="/" class="app-logo">
+            <i class="fas fa-tasks"></i> <!-- Icône de tâches (vous devrez ajouter Font Awesome) -->
+            <h1>Gestionnaire de tâches</h1>
+        </a>
+    </div>
+    
+    <nav class="header-nav">
+        <a href="/" class="nav-link active">
+            <i class="fas fa-home"></i> Accueil
+        </a>
+    </nav>
+    
     <div class="header-actions">
         <div class="auth-buttons">
-            <a href="/login" class="auth-btn" id="login-btn">Connexion</a>
-            <a href="/register" class="auth-btn" id="register-btn">Inscription</a>
-            <a href="/logout" class="auth-btn" id="logout-btn">Déconnexion</a>
+            <a href="/login" class="auth-btn" id="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Connexion
+            </a>
+            <a href="/register" class="auth-btn" id="register-btn">
+                <i class="fas fa-user-plus"></i> Inscription
+            </a>
+            <a href="/logout" class="auth-btn" id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
         </div>
     </div>
 </header>
