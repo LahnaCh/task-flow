@@ -200,7 +200,7 @@ router.get("/api/tasks/history", async (request, response) => {
 router.get("/login", (request, response) => {
     response.render("login", {
         titre: "Connexion",
-        styles: ["./css/style.css"]
+        styles: ["./css/style.css", "./css/auth.css"]
     });
 });
 
@@ -208,7 +208,7 @@ router.get("/login", (request, response) => {
 router.get("/register", (request, response) => {
     response.render("register", {
         titre: "Inscription",
-        styles: ["./css/style.css"]
+        styles: ["./css/style.css", "./css/auth.css"]
     });
 });
 
