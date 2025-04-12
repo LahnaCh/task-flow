@@ -79,6 +79,7 @@ app.use(helmet(cspOption));
 app.use(compression());
 app.use(cors());
 app.use(json());
+app.use(express.urlencoded({ extended: true })); // Pour parser les données des formulaires
 app.use(session({
     cookie: { maxAge: 3600000 },
     name: process.env.npm_package_name,

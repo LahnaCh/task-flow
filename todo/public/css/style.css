@@ -956,3 +956,20 @@ h1 {
         width: 100%;
     }
 }
+
+.user-info {
+    display: flex;
+    align-items: center;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-right: 0.75rem;
+}
+
+.user-info i {
+    margin-right: 0.5rem;
+    opacity: 0.8;
+}
