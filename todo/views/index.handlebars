@@ -1,29 +1,35 @@
-<!-- En-tête simplifié -->
-<header class="app-header">
-    <h1>Gestionnaire de tâches</h1>
-    <div class="header-actions">
-        <button id="new-task-btn">+ Nouvelle tâche</button>
-        <div class="filter-sort-container">
-            <select id="filter-priority">
-                <option value="">Filtrer par priorité</option>
-                <option value="Haute">Haute</option>
-                <option value="Moyenne">Moyenne</option>
-                <option value="Basse">Basse</option>
-            </select>
-            <select id="sort-by">
-                <option value="createdAt">Trier par date de création</option>
-                <option value="dueDate">Trier par date d'échéance</option>
-            </select>
-            <select id="sort-order">
-                <option value="asc">Ordre croissant</option>
-                <option value="desc">Ordre décroissant</option>
-            </select>
-        </div>
-    </div>
-</header>
-
 <!-- Conteneur principal -->
 <main class="task-board-container">
+    <!-- Options de filtrage et nouvelle tâche -->
+    <div class="task-actions-container">
+        <button id="new-task-btn">+ Nouvelle tâche</button>
+        <div class="filter-sort-container">
+            <div class="filter-group">
+                <label class="filter-label" for="filter-priority">Priorité</label>
+                <select id="filter-priority">
+                    <option value="" disabled selected>Choisir...</option>
+                    <option value="Haute">Haute</option>
+                    <option value="Moyenne">Moyenne</option>
+                    <option value="Basse">Basse</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" for="sort-by">Trier par</label>
+                <select id="sort-by">
+                    <option value="createdAt" selected>Date de création</option>
+                    <option value="dueDate">Date d'échéance</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label" for="sort-order">Ordre</label>
+                <select id="sort-order">
+                    <option value="asc" selected>Croissant</option>
+                    <option value="desc">Décroissant</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
     <div class="task-board">
         <!-- Colonne "À faire" -->
         <div class="task-column" data-status="À faire">
