@@ -64,7 +64,7 @@ function openHistoryPopup(taskId) {
     historyTableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Chargement de l\'historique...</td></tr>';
     
     // Afficher le popup
-    historyPopup.style.display = 'flex';
+    historyPopup.classList.add('active');
     
     // Récupérer l'historique de la tâche
     fetch(`/api/tasks/${taskId}/history`)
@@ -150,7 +150,7 @@ function openHistoryPopup(taskId) {
 // Fonction pour fermer le popup d'historique
 function closeHistoryPopup() {
     const historyPopup = document.getElementById('history-popup');
-    historyPopup.style.display = 'none';
+    historyPopup.classList.remove('active');
 }
 
 // Fonction pour afficher une notification (si elle n'existe pas déjà dans window)
