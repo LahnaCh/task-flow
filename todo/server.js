@@ -19,6 +19,9 @@ import memorystore from 'memorystore';
 import passport from "passport";
 // Importation de l'authentification
 import "./authentification.js";
+// Pour le HTTPS
+import https from "node:https";
+import { readFile } from "node:fs/promises";
 
 // Création du serveur express
 const app = express();
@@ -114,7 +117,26 @@ app.use((request, response) => {
     response.status(404).send(`${request.originalUrl} Route introuvable.`);
 });
 
-//Démarrage du serveur
-app.listen(process.env.PORT);
-console.info("Serveur démarré :");
-console.info(`http://localhost:${process.env.PORT}`);
+// Démarrage du serveur
+// Usage du HTTPS
+if (process.env.NODE_ENV === "development") {
+    try {
+        let credentials = {
+            key: await readFile("./security/localhost.key"),
+            cert: await readFile("./security/localhost.cert")
+        };
+    
+        https.createServer(credentials, app).listen(process.env.PORT);
+        console.info("Serveur démarré avec succès (HTTPS) :");
+        console.info(`https://localhost:${process.env.PORT}`);
+    } catch (error) {
+        console.error("Erreur lors du chargement des certificats HTTPS:", error.message);
+        console.info("Démarrage du serveur en mode HTTP :");
+        app.listen(process.env.PORT);
+        console.info(`http://localhost:${process.env.PORT}`);
+    }
+} else {
+    app.listen(process.env.PORT);
+    console.info("Serveur démarré avec succès :");
+    console.info(`http://localhost:${process.env.PORT}`);
+}

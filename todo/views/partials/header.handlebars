@@ -15,8 +15,13 @@
     <div class="header-actions">
         <div class="auth-buttons">
             {{#if user}}
-                <span class="user-info">
-                    <i class="fas fa-user"></i> {{user.name}}
+                <span class="user-info" data-user-id="{{user.id}}">
+                    {{#if (eq user.role "admin")}}
+                        <i class="fas fa-crown admin-icon"></i>
+                    {{else}}
+                        <i class="fas fa-user"></i>
+                    {{/if}}
+                    {{user.name}}
                 </span>
                 <a href="/logout" class="auth-btn" id="logout-btn">
                     <i class="fas fa-sign-out-alt"></i> Déconnexion

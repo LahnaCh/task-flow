@@ -26,12 +26,13 @@ export const getTasks = async (options = {}) => {
         orderBy.createdAt = sortOrder === 'desc' ? 'desc' : 'asc';
     }
     
-    // Get tasks with their assignee
+    // Get tasks with their assignee and creator
     const tasks = await prisma.task.findMany({
         where,
         orderBy,
         include: {
-            assignee: true
+            assignee: true,
+            creator: true
         }
     });
     
@@ -54,6 +55,7 @@ export const getTaskById = async (id) => {
         where: { id },
         include: {
             assignee: true,
+            creator: true,
             history: {
                 orderBy: {
                     timestamp: 'desc'
@@ -79,7 +81,19 @@ export const getTaskById = async (id) => {
  * @returns {Object} - Created task
  */
 export const createTask = async (taskData) => {
-    const { title, description, priority, status, dueDate, assigneeId = 1 } = taskData;
+    const { title, description, priority, status, dueDate, assigneeId = 1, createdById } = taskData;
+    
+    console.log("==== DONNÉES DE CRÉATION DE TÂCHE ====", { 
+        title, 
+        assigneeId: typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId),
+        createdById: typeof createdById === 'number' ? createdById : parseInt(createdById),
+        typesOriginaux: `assigneeId: ${typeof assigneeId}, createdById: ${typeof createdById}`,
+        dueDate: typeof dueDate === 'string' ? dueDate : new Date(dueDate).toISOString()
+    });
+    
+    // Préparation des données pour la création (en s'assurant que les IDs sont des nombres)
+    const assigneeIdInt = typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId || '1');
+    const createdByIdInt = typeof createdById === 'number' ? createdById : parseInt(createdById || assigneeIdInt.toString());
     
     // Validation des champs obligatoires
     if (!title || !description || !priority || !status || !dueDate) {
@@ -94,11 +108,23 @@ export const createTask = async (taskData) => {
             priority,
             status,
             dueDate: Number(dueDate),
-            assigneeId
+            assigneeId: assigneeIdInt,
+            createdById: createdByIdInt
         },
         include: {
-            assignee: true
+            assignee: true,
+            creator: true
         }
+    });
+    
+    console.log("==== TÂCHE CRÉÉE ====", { 
+        id: task.id, 
+        title: task.title,
+        assigneeId: typeof task.assigneeId === 'number' ? task.assigneeId : parseInt(task.assigneeId),
+        createdById: typeof task.createdById === 'number' ? task.createdById : parseInt(task.createdById),
+        assigneeName: task.assignee?.name,
+        creatorName: task.creator?.name,
+        typesStockés: `assigneeId: ${typeof task.assigneeId}, createdById: ${typeof task.createdById}`
     });
     
     // Create history entry for task creation
@@ -171,7 +197,8 @@ export const updateTask = async (id, taskData) => {
             where: { id },
             data: updateData,
             include: {
-                assignee: true
+                assignee: true,
+                creator: true
             }
         });
         
@@ -204,7 +231,8 @@ export const deleteTask = async (id) => {
     const task = await prisma.task.findUnique({
         where: { id },
         include: {
-            assignee: true
+            assignee: true,
+            creator: true
         }
     });
     
@@ -221,7 +249,8 @@ export const deleteTask = async (id) => {
     const deletedTask = await prisma.task.delete({
         where: { id },
         include: {
-            assignee: true
+            assignee: true,
+            creator: true
         }
     });
     

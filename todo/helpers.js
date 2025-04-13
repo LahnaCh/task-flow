@@ -90,3 +90,23 @@ export const registerHelpers = (handlebars) => {
     return text.toLowerCase();
   });
 };
+
+// Middleware pour vérifier si l'utilisateur est authentifié
+export function ensureAuthenticated(request, response, next) {
+    // Si l'utilisateur est authentifié, continuer
+    if (request.isAuthenticated()) {
+        return next();
+    }
+    
+    // Si la requête est une requête API (AJAX), renvoyer une erreur 401
+    if (request.xhr || request.headers.accept.indexOf('json') !== -1 || request.path.startsWith('/api/')) {
+        return response.status(401).json({
+            error: "Authentification requise",
+            redirectTo: "/login"
+        });
+    }
+    
+    // Sinon, rediriger vers la page de connexion
+    request.session.flashMessage = "Veuillez vous connecter pour accéder à cette page";
+    return response.redirect('/login');
+}

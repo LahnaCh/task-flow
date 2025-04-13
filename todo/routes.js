@@ -3,6 +3,7 @@ import { getTasks, getTaskById, createTask, updateTask, deleteTask, getTaskHisto
 import passport from "passport";
 import { createUser } from "./model/user.js";
 import { PrismaClient } from '@prisma/client';
+import { ensureAuthenticated } from "./helpers.js";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -30,10 +31,10 @@ router.get("/", async (request, response) => {
     }
 });
 
-// API Routes
+// API Routes - Toutes les routes API sont protégées par l'authentification
 
 // Route pour obtenir la liste des tâches avec filtres optionnels
-router.get("/api/tasks", async (request, response) => {
+router.get("/api/tasks", ensureAuthenticated, async (request, response) => {
     try {
         const { priority, status, sortBy, sortOrder } = request.query;
         const tasks = await getTasks({ priority, status, sortBy, sortOrder });
@@ -47,7 +48,7 @@ router.get("/api/tasks", async (request, response) => {
 });
 
 // Route pour obtenir une tâche spécifique
-router.get("/api/tasks/:id", async (request, response) => {
+router.get("/api/tasks/:id", ensureAuthenticated, async (request, response) => {
     try {
         const taskId = parseInt(request.params.id);
         
@@ -75,7 +76,7 @@ router.get("/api/tasks/:id", async (request, response) => {
 });
 
 // Route pour créer une nouvelle tâche
-router.post("/api/tasks", async (request, response) => {
+router.post("/api/tasks", ensureAuthenticated, async (request, response) => {
     try {
         const { title, description, priority, status, dueDate } = request.body;
         
@@ -86,7 +87,16 @@ router.post("/api/tasks", async (request, response) => {
             });
         }
         
-        const task = await createTask(request.body);
+        console.log("Création de tâche par l'utilisateur:", request.user.id, request.user.name);
+        
+        // Ajouter l'id du créateur (l'utilisateur connecté)
+        const taskData = {
+            ...request.body,
+            assigneeId: request.user.id, // L'utilisateur connecté est assigné à la tâche
+            createdById: request.user.id // L'utilisateur connecté est le créateur
+        };
+        
+        const task = await createTask(taskData);
         return response.status(201).json(task);
     } catch (error) {
         console.error("Erreur lors de la création de la tâche:", error);
@@ -97,7 +107,7 @@ router.post("/api/tasks", async (request, response) => {
 });
 
 // Route pour mettre à jour une tâche
-router.put("/api/tasks/:id", async (request, response) => {
+router.put("/api/tasks/:id", ensureAuthenticated, async (request, response) => {
     try {
         const taskId = parseInt(request.params.id);
         const { title, description, priority, status, dueDate } = request.body;
@@ -116,6 +126,43 @@ router.put("/api/tasks/:id", async (request, response) => {
         }
         
         try {
+            // Vérifier si l'utilisateur peut modifier cette tâche
+            const existingTask = await getTaskById(taskId);
+            if (!existingTask) {
+                return response.status(404).json({
+                    error: `La tâche avec l'ID ${taskId} n'existe pas.`
+                });
+            }
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const taskCreatorId = existingTask.createdById ? parseInt(existingTask.createdById) : null;
+            const requestUserId = request.user.id ? parseInt(request.user.id) : null;
+
+            const isCreator = taskCreatorId === requestUserId;
+            const isAdmin = request.user.role === 'admin';
+            const canEdit = isCreator || isAdmin;
+
+            console.log("==== VÉRIFICATION DES PERMISSIONS D'ÉDITION ====", {
+                taskId,
+                taskTitle: existingTask.title,
+                taskCreatorId,
+                requestUserId,
+                userRole: request.user.role,
+                userName: request.user.name,
+                creatorName: existingTask.creator?.name,
+                isCreator,
+                isAdmin,
+                canEdit,
+                typesComparés: `${typeof taskCreatorId} vs ${typeof requestUserId}`,
+                valeursComparées: `${taskCreatorId} === ${requestUserId}`
+            });
+
+            if (!canEdit) {
+                return response.status(403).json({
+                    error: "Vous n'êtes pas autorisé à modifier cette tâche. Seul le créateur ou un administrateur peut la modifier."
+                });
+            }
+            
             const task = await updateTask(taskId, request.body);
             return response.status(200).json(task);
         } catch (error) {
@@ -135,7 +182,7 @@ router.put("/api/tasks/:id", async (request, response) => {
 });
 
 // Route pour supprimer une tâche
-router.delete("/api/tasks/:id", async (request, response) => {
+router.delete("/api/tasks/:id", ensureAuthenticated, async (request, response) => {
     try {
         const taskId = parseInt(request.params.id);
         
@@ -146,6 +193,43 @@ router.delete("/api/tasks/:id", async (request, response) => {
         }
         
         try {
+            // Vérifier si l'utilisateur peut supprimer cette tâche
+            const existingTask = await getTaskById(taskId);
+            if (!existingTask) {
+                return response.status(404).json({
+                    error: `La tâche avec l'ID ${taskId} n'existe pas.`
+                });
+            }
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const taskCreatorId = existingTask.createdById ? parseInt(existingTask.createdById) : null;
+            const requestUserId = request.user.id ? parseInt(request.user.id) : null;
+
+            const isCreator = taskCreatorId === requestUserId;
+            const isAdmin = request.user.role === 'admin';
+            const canDelete = isCreator || isAdmin;
+
+            console.log("==== VÉRIFICATION DES PERMISSIONS DE SUPPRESSION ====", {
+                taskId,
+                taskTitle: existingTask.title,
+                taskCreatorId,
+                requestUserId,
+                userRole: request.user.role,
+                userName: request.user.name,
+                creatorName: existingTask.creator?.name,
+                isCreator,
+                isAdmin,
+                canDelete,
+                typesComparés: `${typeof taskCreatorId} vs ${typeof requestUserId}`,
+                valeursComparées: `${taskCreatorId} === ${requestUserId}`
+            });
+
+            if (!canDelete) {
+                return response.status(403).json({
+                    error: "Vous n'êtes pas autorisé à supprimer cette tâche. Seul le créateur ou un administrateur peut la supprimer."
+                });
+            }
+            
             const deletedTask = await deleteTask(taskId);
             return response.status(200).json(deletedTask);
         } catch (error) {
@@ -165,7 +249,7 @@ router.delete("/api/tasks/:id", async (request, response) => {
 });
 
 // Route pour obtenir l'historique d'une tâche
-router.get("/api/tasks/:id/history", async (request, response) => {
+router.get("/api/tasks/:id/history", ensureAuthenticated, async (request, response) => {
     try {
         const taskId = parseInt(request.params.id);
         
@@ -186,7 +270,7 @@ router.get("/api/tasks/:id/history", async (request, response) => {
 });
 
 // Route pour obtenir l'historique de toutes les tâches
-router.get("/api/tasks/history", async (request, response) => {
+router.get("/api/tasks/history", ensureAuthenticated, async (request, response) => {
     try {
         const history = await getTaskHistory();
         return response.status(200).json(history);

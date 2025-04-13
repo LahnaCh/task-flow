@@ -11,6 +11,11 @@
     overflow-y: auto;
 }
 
+/* Afficher le popup quand il a la classe active */
+.popup.active {
+    display: block;
+}
+
 .popup-content {
     position: relative;
     background-color: #fff;

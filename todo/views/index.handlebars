@@ -2,7 +2,13 @@
 <main class="task-board-container">
     <!-- Options de filtrage et nouvelle tâche -->
     <div class="task-actions-container">
+        {{#if user}}
         <button id="new-task-btn">+ Nouvelle tâche</button>
+        {{else}}
+        <a href="/login" class="login-required-btn">
+            <i class="fas fa-lock"></i> Connectez-vous pour créer des tâches
+        </a>
+        {{/if}}
         <div class="filter-sort-container">
             <div class="filter-group">
                 <label class="filter-label" for="filter-priority">Priorité</label>
@@ -27,8 +33,18 @@
                     <option value="desc">Décroissant</option>
                 </select>
             </div>
+            <button id="reset-filters-btn" class="reset-btn" title="Réinitialiser les filtres">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </button>
         </div>
     </div>
+
+    {{#unless user}}
+    <div class="login-notice">
+        <i class="fas fa-info-circle"></i> 
+        <span>Vous devez être connecté pour interagir avec les tâches. <a href="/login">Se connecter</a> ou <a href="/register">créer un compte</a>.</span>
+    </div>
+    {{/unless}}
 
     <div class="task-board">
         <!-- Colonne "À faire" -->
