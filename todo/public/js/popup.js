@@ -86,73 +86,110 @@ function checkAuthentication() {
     return true;
 }
 
-// Fonction pour ouvrir la popup de création/modification de tâche
-function openTaskPopup(task = null) {
-    // Vérifier si l'utilisateur est connecté
-    if (!checkAuthentication()) {
-        return;
-    }
-    
+// Fonction pour ouvrir le popup de tâche
+function openTaskPopup(mode, taskId = null) {
     const popup = document.getElementById('task-popup');
-    const form = document.getElementById('task-form');
     const title = document.getElementById('popup-title');
     const submitBtn = document.getElementById('submit-task');
     
     // Réinitialiser le formulaire
-    form.reset();
-    
-    // Configurer le formulaire selon le mode (création ou modification)
-    if (task) {
-        // Mode modification
-        title.textContent = 'Modifier la tâche';
-        submitBtn.textContent = 'Enregistrer';
+    const form = document.getElementById('task-form');
+    if (form) {
+        form.reset();
+        // Supprimer les messages d'erreur
+        const errorMessages = form.querySelectorAll('.error-message');
+        errorMessages.forEach(message => message.remove());
         
-        // Remplir le formulaire avec les données de la tâche
-        document.getElementById('task-title').value = task.title;
-        document.getElementById('task-description').value = task.description;
-        document.getElementById('task-priority').value = task.priority;
-        document.getElementById('task-status').value = task.status;
-        
-        // Formater la date pour l'input datetime-local
-        const dueDate = new Date(task.dueDate);
-        const year = dueDate.getFullYear();
-        const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-        const day = String(dueDate.getDate()).padStart(2, '0');
-        const hours = String(dueDate.getHours()).padStart(2, '0');
-        const minutes = String(dueDate.getMinutes()).padStart(2, '0');
-        
-        document.getElementById('task-due-date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
-        
-        // Ajouter l'ID de la tâche au formulaire
-        form.dataset.taskId = task.id;
-    } else {
-        // Mode création
-        title.textContent = 'Nouvelle tâche';
-        submitBtn.textContent = 'Créer';
-        
-        // Définir des valeurs par défaut
-        document.getElementById('task-status').value = 'À faire';
-        document.getElementById('task-priority').value = 'Moyenne';
-        
-        // Supprimer l'ID de tâche du formulaire s'il existe
-        delete form.dataset.taskId;
-        
-        // Définir la date d'échéance par défaut (une semaine à partir d'aujourd'hui)
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 7);
-        dueDate.setHours(12);
-        dueDate.setMinutes(0);
-        
-        const year = dueDate.getFullYear();
-        const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-        const day = String(dueDate.getDate()).padStart(2, '0');
-        const hours = String(dueDate.getHours()).padStart(2, '0');
-        const minutes = String(dueDate.getMinutes()).padStart(2, '0');
-        
-        document.getElementById('task-due-date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        // Réinitialiser les classes d'erreur
+        const inputs = form.querySelectorAll('.error');
+        inputs.forEach(input => input.classList.remove('error'));
     }
     
-    // Afficher la popup
+    // Si aucun mode n'est spécifié ou si l'objet passé est une tâche complète (appel depuis index.js)
+    if (!mode || typeof mode === 'object') {
+        if (typeof mode === 'object' && mode !== null) {
+            // Mode édition avec un objet tâche
+            const task = mode;
+            title.textContent = 'Modifier la tâche';
+            submitBtn.textContent = 'Mettre à jour';
+            
+            // Remplir le formulaire avec les données de la tâche
+            if (form) {
+                form.dataset.taskId = task.id;
+                document.getElementById('task-title').value = task.title;
+                document.getElementById('task-description').value = task.description;
+                
+                // Formater la date d'échéance (YYYY-MM-DD)
+                if (task.dueDate) {
+                    const dueDate = new Date(task.dueDate);
+                    const formattedDate = dueDate.toISOString().slice(0, 16);
+                    document.getElementById('task-due-date').value = formattedDate;
+                }
+                
+                document.getElementById('task-priority').value = task.priority;
+                document.getElementById('task-status').value = task.status;
+            }
+        } else {
+            // Mode création
+            title.textContent = 'Créer une nouvelle tâche';
+            submitBtn.textContent = 'Créer';
+            
+            // Définir la date d'échéance par défaut à aujourd'hui
+            const today = new Date();
+            const formattedDate = today.toISOString().slice(0, 16);
+            document.getElementById('task-due-date').value = formattedDate;
+            
+            if (form) {
+                form.dataset.taskId = '';
+            }
+        }
+    } else {
+        // Ancienne approche avec mode explicite
+        if (mode === 'create') {
+            title.textContent = 'Créer une nouvelle tâche';
+            submitBtn.textContent = 'Créer';
+            
+            // Définir la date d'échéance par défaut à aujourd'hui
+            const today = new Date();
+            const formattedDate = today.toISOString().slice(0, 16);
+            document.getElementById('task-due-date').value = formattedDate;
+            
+            if (form) {
+                form.dataset.taskId = '';
+            }
+        } else if (mode === 'edit' && taskId) {
+            title.textContent = 'Modifier la tâche';
+            submitBtn.textContent = 'Mettre à jour';
+            
+            if (form) {
+                form.dataset.taskId = taskId;
+            }
+            
+            // Récupérer les détails de la tâche
+            fetch(`/api/tasks/${taskId}`)
+                .then(response => response.json())
+                .then(task => {
+                    document.getElementById('task-title').value = task.title;
+                    document.getElementById('task-description').value = task.description;
+                    
+                    // Formater la date d'échéance
+                    if (task.dueDate) {
+                        const dueDate = new Date(task.dueDate);
+                        const formattedDate = dueDate.toISOString().slice(0, 16);
+                        document.getElementById('task-due-date').value = formattedDate;
+                    }
+                    
+                    document.getElementById('task-priority').value = task.priority;
+                    document.getElementById('task-status').value = task.status;
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des détails de la tâche:', error);
+                    showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
+                });
+        }
+    }
+    
+    // Afficher le popup
     popup.classList.add('active');
 }
 
@@ -164,7 +201,7 @@ function closePopup() {
     const form = document.getElementById('task-form');
     
     if (popup && form) {
-        popup.style.display = 'none';
+        popup.classList.remove('active');
         form.reset();
         form.dataset.taskId = '';
         
@@ -194,6 +231,15 @@ function validateForm() {
         isValid = false;
     } else {
         clearError(titleInput);
+    }
+    
+    // Vérifier la description
+    const descriptionInput = document.getElementById('task-description');
+    if (!descriptionInput.value.trim()) {
+        showError(descriptionInput, 'La description est obligatoire');
+        isValid = false;
+    } else {
+        clearError(descriptionInput);
     }
     
     // Vérifier la date d'échéance
@@ -345,12 +391,6 @@ function showHistoryPopup(history) {
     
     // Afficher la popup
     popup.classList.add('active');
-}
-
-// Fonction pour fermer la popup de tâche
-function closeTaskPopup() {
-    const popup = document.getElementById('task-popup');
-    popup.classList.remove('active');
 }
 
 // Fonction pour afficher une notification
