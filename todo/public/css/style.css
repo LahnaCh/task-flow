@@ -920,9 +920,41 @@ h1 {
 }
 
 .task-actions-container select:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.2);
+    border-color: #0366d6;
+    box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.25);
+}
+
+/* Bouton de réinitialisation des filtres */
+.reset-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    margin-left: 0.75rem;
+    height: 38px;
+}
+
+.reset-btn i {
+    margin-right: 0.4rem;
+}
+
+.reset-btn:hover {
+    background-color: #e9ecef;
+    color: #495057;
+    border-color: #ced4da;
+}
+
+.reset-btn:active {
+    background-color: #dee2e6;
+    transform: translateY(1px);
 }
 
 @media (max-width: 992px) {

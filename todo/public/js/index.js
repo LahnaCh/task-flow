@@ -23,6 +23,7 @@ if (window.todoAppInitialized) {
         const filterPriority = document.getElementById('filter-priority');
         const sortBy = document.getElementById('sort-by');
         const sortOrder = document.getElementById('sort-order');
+        const resetFiltersBtn = document.getElementById('reset-filters-btn');
         
         // Initialiser les compteurs de tâches
         updateTaskCounts();
@@ -55,6 +56,33 @@ if (window.todoAppInitialized) {
             sortOrder.addEventListener('change', () => {
                 currentSortOrder = sortOrder.value;
                 loadTasks();
+            });
+        }
+        
+        // Gestionnaire pour le bouton de réinitialisation des filtres
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', () => {
+                // Réinitialiser les valeurs des filtres
+                if (filterPriority) {
+                    filterPriority.selectedIndex = 0;
+                    currentPriority = '';
+                }
+                
+                if (sortBy) {
+                    sortBy.value = 'createdAt';
+                    currentSortBy = 'createdAt';
+                }
+                
+                if (sortOrder) {
+                    sortOrder.value = 'asc';
+                    currentSortOrder = 'asc';
+                }
+                
+                // Recharger les tâches
+                loadTasks();
+                
+                // Afficher une notification
+                showNotification('Filtres réinitialisés', 'info');
             });
         }
         
