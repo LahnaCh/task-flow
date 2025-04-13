@@ -1004,3 +1004,18 @@ h1 {
     margin-right: 0.5rem;
     opacity: 0.9;
 }
+
+.admin-icon {
+    color: #ffc107;
+    margin-right: 0.5rem;
+    animation: shine 2s infinite alternate;
+}
+
+@keyframes shine {
+    from {
+        text-shadow: 0 0 2px rgba(255, 255, 255, 0.2);
+    }
+    to {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 12px rgba(255, 193, 7, 0.7);
+    }
+}
