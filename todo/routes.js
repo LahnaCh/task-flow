@@ -2,8 +2,10 @@ import { Router } from "express";
 import { getTasks, getTaskById, createTask, updateTask, deleteTask, getTaskHistory } from "./model/task.js";
 import passport from "passport";
 import { createUser } from "./model/user.js";
+import { PrismaClient } from '@prisma/client';
 
 const router = Router();
+const prisma = new PrismaClient();
 
 //Definition des routes
 
@@ -200,10 +202,14 @@ router.get("/api/tasks/history", async (request, response) => {
 
 // Route pour afficher la page de connexion
 router.get("/login", (request, response) => {
+    const flashMessage = request.session.flashMessage;
+    request.session.flashMessage = null; // Effacer le message après l'avoir récupéré
+    
     response.render("login", {
         titre: "Connexion",
         styles: ["./css/style.css", "./css/auth.css"],
-        user: request.user
+        user: request.user,
+        flashMessage: flashMessage
     });
 });
 
@@ -240,42 +246,95 @@ router.get("/logout", (request, response, next) => {
     }
 });
 
-// Route de connexion
-router.post("/login", passport.authenticate("local"), (request, response) => {
-    response.status(200).json({ message: "Connexion réussie" });
+// Route de connexion avec redirection
+router.post("/login", (request, response, next) => {
+    console.log("Tentative de connexion:", request.body.email);
+    
+    passport.authenticate("local", (err, user, info) => {
+        if (err) {
+            console.log("Erreur d'authentification:", err);
+            return next(err);
+        }
+        
+        if (!user) {
+            console.log("Échec d'authentification:", info.erreur);
+            // Authentification échouée
+            return response.render("login", {
+                titre: "Connexion",
+                styles: ["./css/style.css", "./css/auth.css"],
+                error: info.erreur === "mauvais_utilisateur" 
+                    ? "Cet email n'est pas enregistré" 
+                    : "Mot de passe incorrect"
+            });
+        }
+        
+        console.log("Authentification réussie pour:", user.email);
+        // Authentification réussie, connexion de l'utilisateur
+        request.logIn(user, (err) => {
+            if (err) {
+                console.log("Erreur lors de la connexion:", err);
+                return next(err);
+            }
+            
+            console.log("Utilisateur connecté avec succès, redirection");
+            // Redirection vers la page d'accueil
+            return response.redirect("/");
+        });
+    })(request, response, next);
 });
 
 // Route d'inscription
 router.post("/register", async (request, response) => {
     try {
-        const { email, password } = request.body;
+        const { email, password, name } = request.body;
+        console.log("Tentative d'inscription:", email);
         
         if (!email || !password) {
-            return response.status(400).json({
+            console.log("Échec: champs requis manquants");
+            return response.render("register", {
+                titre: "Inscription",
+                styles: ["./css/style.css", "./css/auth.css"],
                 error: "L'email et le mot de passe sont requis"
             });
         }
 
-        const user = await createUser(email, password);
-        response.status(201).json({ message: "Inscription réussie" });
+        try {
+            // Créer l'utilisateur
+            const user = await createUser(email, password);
+            console.log("Utilisateur créé avec succès:", user.id);
+            
+            // Mettre à jour le nom d'utilisateur si fourni
+            if (name) {
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { name }
+                });
+                console.log("Nom d'utilisateur mis à jour:", name);
+            }
+            
+            console.log("Redirection vers la page de connexion");
+            // Ajout d'un message flash pour indiquer le succès de l'inscription
+            request.session.flashMessage = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
+            return response.redirect("/login");
+        } catch (error) {
+            if (error.message === 'Cet email est déjà utilisé') {
+                console.log("Échec: email déjà utilisé");
+                return response.render("register", {
+                    titre: "Inscription",
+                    styles: ["./css/style.css", "./css/auth.css"],
+                    error: "Cet email est déjà utilisé"
+                });
+            }
+            throw error;
+        }
     } catch (error) {
         console.error("Erreur lors de l'inscription:", error);
-        response.status(500).json({
+        response.render("register", {
+            titre: "Inscription",
+            styles: ["./css/style.css", "./css/auth.css"],
             error: "Une erreur est survenue lors de l'inscription"
         });
     }
-});
-
-// Route de déconnexion
-router.post("/logout", (request, response) => {
-    request.logout((err) => {
-        if (err) {
-            return response.status(500).json({
-                error: "Une erreur est survenue lors de la déconnexion"
-            });
-        }
-        response.status(200).json({ message: "Déconnexion réussie" });
-    });
 });
 
 export default router;

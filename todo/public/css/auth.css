@@ -145,6 +145,12 @@ footer {
     color: #c53030;
 }
 
+.alert-success {
+    background-color: #f0fff4;
+    border-color: #48bb78;
+    color: #2f855a;
+}
+
 /* Liens et options supplémentaires */
 .auth-links {
     margin-top: 1.5rem;
