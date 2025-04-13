@@ -83,12 +83,17 @@ export const getTaskById = async (id) => {
 export const createTask = async (taskData) => {
     const { title, description, priority, status, dueDate, assigneeId = 1, createdById } = taskData;
     
-    console.log("Données de création de tâche:", { 
+    console.log("==== DONNÉES DE CRÉATION DE TÂCHE ====", { 
         title, 
-        assigneeId, 
-        createdById,
+        assigneeId: typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId),
+        createdById: typeof createdById === 'number' ? createdById : parseInt(createdById),
+        typesOriginaux: `assigneeId: ${typeof assigneeId}, createdById: ${typeof createdById}`,
         dueDate: typeof dueDate === 'string' ? dueDate : new Date(dueDate).toISOString()
     });
+    
+    // Préparation des données pour la création (en s'assurant que les IDs sont des nombres)
+    const assigneeIdInt = typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId || '1');
+    const createdByIdInt = typeof createdById === 'number' ? createdById : parseInt(createdById || assigneeIdInt.toString());
     
     // Validation des champs obligatoires
     if (!title || !description || !priority || !status || !dueDate) {
@@ -103,8 +108,8 @@ export const createTask = async (taskData) => {
             priority,
             status,
             dueDate: Number(dueDate),
-            assigneeId,
-            createdById: createdById || assigneeId // Si non spécifié, utiliser l'assignee comme créateur
+            assigneeId: assigneeIdInt,
+            createdById: createdByIdInt
         },
         include: {
             assignee: true,
@@ -112,13 +117,14 @@ export const createTask = async (taskData) => {
         }
     });
     
-    console.log("Tâche créée:", { 
+    console.log("==== TÂCHE CRÉÉE ====", { 
         id: task.id, 
         title: task.title,
-        assigneeId: task.assigneeId,
-        createdById: task.createdById,
+        assigneeId: typeof task.assigneeId === 'number' ? task.assigneeId : parseInt(task.assigneeId),
+        createdById: typeof task.createdById === 'number' ? task.createdById : parseInt(task.createdById),
         assigneeName: task.assignee?.name,
-        creatorName: task.creator?.name
+        creatorName: task.creator?.name,
+        typesStockés: `assigneeId: ${typeof task.assigneeId}, createdById: ${typeof task.createdById}`
     });
     
     // Create history entry for task creation

@@ -135,18 +135,26 @@ router.put("/api/tasks/:id", ensureAuthenticated, async (request, response) => {
             }
             
             // Vérifier si l'utilisateur est le créateur ou un admin
-            const isCreator = existingTask.createdById === request.user.id;
+            const taskCreatorId = existingTask.createdById ? parseInt(existingTask.createdById) : null;
+            const requestUserId = request.user.id ? parseInt(request.user.id) : null;
+
+            const isCreator = taskCreatorId === requestUserId;
             const isAdmin = request.user.role === 'admin';
             const canEdit = isCreator || isAdmin;
 
-            console.log("Vérification des permissions:", {
+            console.log("==== VÉRIFICATION DES PERMISSIONS D'ÉDITION ====", {
                 taskId,
-                taskCreatorId: existingTask.createdById,
-                requestUserId: request.user.id,
+                taskTitle: existingTask.title,
+                taskCreatorId,
+                requestUserId,
                 userRole: request.user.role,
+                userName: request.user.name,
+                creatorName: existingTask.creator?.name,
                 isCreator,
                 isAdmin,
-                canEdit
+                canEdit,
+                typesComparés: `${typeof taskCreatorId} vs ${typeof requestUserId}`,
+                valeursComparées: `${taskCreatorId} === ${requestUserId}`
             });
 
             if (!canEdit) {
@@ -194,18 +202,26 @@ router.delete("/api/tasks/:id", ensureAuthenticated, async (request, response) =
             }
             
             // Vérifier si l'utilisateur est le créateur ou un admin
-            const isCreator = existingTask.createdById === request.user.id;
+            const taskCreatorId = existingTask.createdById ? parseInt(existingTask.createdById) : null;
+            const requestUserId = request.user.id ? parseInt(request.user.id) : null;
+
+            const isCreator = taskCreatorId === requestUserId;
             const isAdmin = request.user.role === 'admin';
             const canDelete = isCreator || isAdmin;
 
-            console.log("Vérification des permissions pour suppression:", {
+            console.log("==== VÉRIFICATION DES PERMISSIONS DE SUPPRESSION ====", {
                 taskId,
-                taskCreatorId: existingTask.createdById,
-                requestUserId: request.user.id,
+                taskTitle: existingTask.title,
+                taskCreatorId,
+                requestUserId,
                 userRole: request.user.role,
+                userName: request.user.name,
+                creatorName: existingTask.creator?.name,
                 isCreator,
                 isAdmin,
-                canDelete
+                canDelete,
+                typesComparés: `${typeof taskCreatorId} vs ${typeof requestUserId}`,
+                valeursComparées: `${taskCreatorId} === ${requestUserId}`
             });
 
             if (!canDelete) {

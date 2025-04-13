@@ -222,6 +222,7 @@ if (window.todoAppInitialized) {
             const card = document.createElement('div');
             card.className = 'task-card';
             card.dataset.id = task.id;
+            card.dataset.creatorId = task.createdById || '';
             
             // Formater la date d'échéance
             const dueDate = new Date(task.dueDate);
@@ -234,23 +235,24 @@ if (window.todoAppInitialized) {
             
             // Récupérer l'ID de l'utilisateur connecté depuis un attribut data
             const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
+            const creatorId = task.createdById ? parseInt(task.createdById) : null;
             
             // Vérifier si l'utilisateur est le créateur ou un admin
-            const isCreator = task.createdById === userId;
+            const isCreator = userId === creatorId;
             const canEditDelete = isAdmin || isCreator;
             
-            // Log pour déboguer
-            console.log('Task permissions:', {
+            // Log détaillé pour déboguer les permissions
+            console.log('==== PERMISSIONS TÂCHE ====', {
                 taskId: task.id, 
                 title: task.title,
-                creatorId: task.createdById,
-                assigneeId: task.assigneeId,
+                creatorId: creatorId,
                 creatorName: task.creator?.name,
-                assigneeName: task.assignee?.name,
                 loggedUserId: userId,
-                isAdmin,
-                isCreator,
-                canEditDelete
+                isAdmin: isAdmin,
+                isCreator: isCreator,
+                canEditDelete: canEditDelete,
+                typesComparés: `${typeof userId} vs ${typeof creatorId}`,
+                valeursComparées: `${userId} === ${creatorId}`
             });
             
             // Créer les boutons d'action en fonction des permissions
@@ -448,6 +450,33 @@ if (window.todoAppInitialized) {
                 return;
             }
             
+            // Vérifier les permissions directement depuis les attributs data de la carte
+            const creatorId = parseInt(taskCard.dataset.creatorId);
+            
+            // Obtenir l'utilisateur connecté et son rôle
+            const userInfo = document.querySelector('.user-info');
+            const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
+            const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const isCreator = userId === creatorId;
+            const canEdit = isAdmin || isCreator;
+            
+            console.log('==== VÉRIFICATION PRÉALABLE POUR ÉDITION ====', {
+                taskId: taskId,
+                creatorId: creatorId,
+                userId: userId,
+                isAdmin: isAdmin,
+                isCreator: isCreator,
+                canEdit: canEdit
+            });
+            
+            // Si l'utilisateur n'a pas le droit d'éditer, afficher une notification et ne pas ouvrir le popup
+            if (!canEdit) {
+                showNotification('Vous n\'êtes pas autorisé à modifier cette tâche. Seul le créateur ou un administrateur peut la modifier.', 'error');
+                return;
+            }
+            
             console.log('Édition de la tâche avec ID:', taskId);
             
             // Récupérer les données de la tâche
@@ -481,6 +510,33 @@ if (window.todoAppInitialized) {
             const taskId = taskCard.dataset.id;
             if (!taskId) {
                 showNotification('ID de tâche non trouvé', 'error');
+                return;
+            }
+            
+            // Vérifier les permissions directement depuis les attributs data de la carte
+            const creatorId = parseInt(taskCard.dataset.creatorId);
+            
+            // Obtenir l'utilisateur connecté et son rôle
+            const userInfo = document.querySelector('.user-info');
+            const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
+            const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const isCreator = userId === creatorId;
+            const canDelete = isAdmin || isCreator;
+            
+            console.log('==== VÉRIFICATION PRÉALABLE POUR SUPPRESSION ====', {
+                taskId: taskId,
+                creatorId: creatorId,
+                userId: userId,
+                isAdmin: isAdmin,
+                isCreator: isCreator,
+                canDelete: canDelete
+            });
+            
+            // Si l'utilisateur n'a pas le droit de supprimer, afficher une notification
+            if (!canDelete) {
+                showNotification('Vous n\'êtes pas autorisé à supprimer cette tâche. Seul le créateur ou un administrateur peut la supprimer.', 'error');
                 return;
             }
             
