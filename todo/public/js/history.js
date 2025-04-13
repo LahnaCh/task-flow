@@ -51,8 +51,35 @@ if (window.historyPopupInitialized) {
     });
 }
 
+// Vérifier si l'utilisateur est connecté avant d'autoriser certaines actions
+function checkAuthentication() {
+    const isAuthenticated = !!document.querySelector('.user-info');
+    if (!isAuthenticated) {
+        showNotification('Veuillez vous connecter pour effectuer cette action', 'error');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+        return false;
+    }
+    return true;
+}
+
+// Fonction pour gérer les erreurs d'authentification et rediriger
+function handleAuthError() {
+    console.error('Erreur d\'authentification');
+    showNotification('Veuillez vous connecter pour effectuer cette action', 'error');
+    setTimeout(() => {
+        window.location.href = '/login';
+    }, 1500);
+}
+
 // Fonction pour ouvrir le popup d'historique
 function openHistoryPopup(taskId) {
+    // Vérifier si l'utilisateur est connecté
+    if (!checkAuthentication()) {
+        return;
+    }
+    
     const historyPopup = document.getElementById('history-popup');
     const historyTableBody = document.getElementById('history-table-body');
     const noHistoryMessage = document.getElementById('no-history-message');
@@ -71,6 +98,9 @@ function openHistoryPopup(taskId) {
         .then(response => {
             if (!response.ok) {
                 console.error('Erreur HTTP:', response.status, response.statusText);
+                if (response.status === 401) {
+                    throw new Error('AUTH_ERROR');
+                }
                 throw new Error(`Erreur lors de la récupération de l'historique (${response.status})`);
             }
             return response.json();
@@ -142,8 +172,12 @@ function openHistoryPopup(taskId) {
         })
         .catch(error => {
             console.error('Erreur détaillée:', error);
-            historyTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Erreur: ${error.message}</td></tr>`;
-            showNotification(`Erreur: ${error.message}`, 'error');
+            if (error.message === 'AUTH_ERROR') {
+                handleAuthError();
+            } else {
+                historyTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">Erreur: ${error.message}</td></tr>`;
+                showNotification(`Erreur: ${error.message}`, 'error');
+            }
         });
 }
 

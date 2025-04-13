@@ -86,8 +86,22 @@ function checkAuthentication() {
     return true;
 }
 
+// Fonction pour gérer les erreurs d'authentification et rediriger
+function handleAuthError() {
+    console.error('Erreur d\'authentification');
+    showNotification('Veuillez vous connecter pour effectuer cette action', 'error');
+    setTimeout(() => {
+        window.location.href = '/login';
+    }, 1500);
+}
+
 // Fonction pour ouvrir le popup de tâche
 function openTaskPopup(mode, taskId = null) {
+    // Vérifier l'authentification avant d'ouvrir le popup
+    if (!checkAuthentication()) {
+        return;
+    }
+    
     const popup = document.getElementById('task-popup');
     const title = document.getElementById('popup-title');
     const submitBtn = document.getElementById('submit-task');
@@ -167,7 +181,15 @@ function openTaskPopup(mode, taskId = null) {
             
             // Récupérer les détails de la tâche
             fetch(`/api/tasks/${taskId}`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            throw new Error('AUTH_ERROR');
+                        }
+                        throw new Error('API_ERROR');
+                    }
+                    return response.json();
+                })
                 .then(task => {
                     document.getElementById('task-title').value = task.title;
                     document.getElementById('task-description').value = task.description;
@@ -184,7 +206,11 @@ function openTaskPopup(mode, taskId = null) {
                 })
                 .catch(error => {
                     console.error('Erreur lors de la récupération des détails de la tâche:', error);
-                    showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
+                    if (error.message === 'AUTH_ERROR') {
+                        handleAuthError();
+                    } else {
+                        showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
+                    }
                 });
         }
     }
