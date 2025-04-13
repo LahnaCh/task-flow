@@ -87,7 +87,16 @@ router.post("/api/tasks", ensureAuthenticated, async (request, response) => {
             });
         }
         
-        const task = await createTask(request.body);
+        console.log("Création de tâche par l'utilisateur:", request.user.id, request.user.name);
+        
+        // Ajouter l'id du créateur (l'utilisateur connecté)
+        const taskData = {
+            ...request.body,
+            assigneeId: request.user.id, // L'utilisateur connecté est assigné à la tâche
+            createdById: request.user.id // L'utilisateur connecté est le créateur
+        };
+        
+        const task = await createTask(taskData);
         return response.status(201).json(task);
     } catch (error) {
         console.error("Erreur lors de la création de la tâche:", error);
@@ -117,6 +126,35 @@ router.put("/api/tasks/:id", ensureAuthenticated, async (request, response) => {
         }
         
         try {
+            // Vérifier si l'utilisateur peut modifier cette tâche
+            const existingTask = await getTaskById(taskId);
+            if (!existingTask) {
+                return response.status(404).json({
+                    error: `La tâche avec l'ID ${taskId} n'existe pas.`
+                });
+            }
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const isCreator = existingTask.createdById === request.user.id;
+            const isAdmin = request.user.role === 'admin';
+            const canEdit = isCreator || isAdmin;
+
+            console.log("Vérification des permissions:", {
+                taskId,
+                taskCreatorId: existingTask.createdById,
+                requestUserId: request.user.id,
+                userRole: request.user.role,
+                isCreator,
+                isAdmin,
+                canEdit
+            });
+
+            if (!canEdit) {
+                return response.status(403).json({
+                    error: "Vous n'êtes pas autorisé à modifier cette tâche. Seul le créateur ou un administrateur peut la modifier."
+                });
+            }
+            
             const task = await updateTask(taskId, request.body);
             return response.status(200).json(task);
         } catch (error) {
@@ -147,6 +185,35 @@ router.delete("/api/tasks/:id", ensureAuthenticated, async (request, response) =
         }
         
         try {
+            // Vérifier si l'utilisateur peut supprimer cette tâche
+            const existingTask = await getTaskById(taskId);
+            if (!existingTask) {
+                return response.status(404).json({
+                    error: `La tâche avec l'ID ${taskId} n'existe pas.`
+                });
+            }
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const isCreator = existingTask.createdById === request.user.id;
+            const isAdmin = request.user.role === 'admin';
+            const canDelete = isCreator || isAdmin;
+
+            console.log("Vérification des permissions pour suppression:", {
+                taskId,
+                taskCreatorId: existingTask.createdById,
+                requestUserId: request.user.id,
+                userRole: request.user.role,
+                isCreator,
+                isAdmin,
+                canDelete
+            });
+
+            if (!canDelete) {
+                return response.status(403).json({
+                    error: "Vous n'êtes pas autorisé à supprimer cette tâche. Seul le créateur ou un administrateur peut la supprimer."
+                });
+            }
+            
             const deletedTask = await deleteTask(taskId);
             return response.status(200).json(deletedTask);
         } catch (error) {

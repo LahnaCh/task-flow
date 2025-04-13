@@ -20,7 +20,9 @@ model Task {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   assigneeId  Int       @default(1) // Par défaut, assigné à l'utilisateur avec id=1
-  assignee    User      @relation(fields: [assigneeId], references: [id])
+  assignee    User      @relation(fields: [assigneeId], references: [id], name: "assignedTasks")
+  createdById Int?      // ID de l'utilisateur qui a créé la tâche
+  creator     User?     @relation(fields: [createdById], references: [id], name: "createdTasks")
   history     History[]
 }
 
@@ -30,7 +32,8 @@ model User {
   password String  @default("CHANGE_ME")  // Valeur par défaut temporaire
   name     String  @default("Utilisateur")
   role     String  @default("user") // Valeurs possibles: "admin", "user"
-  tasks    Task[]
+  assignedTasks Task[] @relation("assignedTasks")
+  createdTasks  Task[] @relation("createdTasks")
 }
 
 model History {

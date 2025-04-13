@@ -18,10 +18,18 @@ function checkAuthError(response) {
     if (!response.ok) {
         if (response.status === 401) {
             throw new Error('AUTH_ERROR');
+        } else if (response.status === 403) {
+            throw new Error('FORBIDDEN_ERROR');
         }
         throw new Error('API_ERROR');
     }
     return response.json();
+}
+
+// Fonction pour gérer les erreurs d'autorisation (403 Forbidden)
+function handleForbiddenError(error) {
+    console.error('Erreur d\'autorisation:', error);
+    showNotification('Vous n\'êtes pas autorisé à effectuer cette action', 'error');
 }
 
 // Vérifier si l'application a déjà été initialisée
@@ -219,14 +227,45 @@ if (window.todoAppInitialized) {
             const dueDate = new Date(task.dueDate);
             const formattedDueDate = `${dueDate.toLocaleDateString()} à ${dueDate.toLocaleTimeString()}`;
             
+            // Obtenir l'utilisateur connecté et son rôle
+            const userInfo = document.querySelector('.user-info');
+            const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
+            const userNameElement = userInfo ? userInfo.textContent.trim() : null;
+            
+            // Récupérer l'ID de l'utilisateur connecté depuis un attribut data
+            const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
+            
+            // Vérifier si l'utilisateur est le créateur ou un admin
+            const isCreator = task.createdById === userId;
+            const canEditDelete = isAdmin || isCreator;
+            
+            // Log pour déboguer
+            console.log('Task permissions:', {
+                taskId: task.id, 
+                title: task.title,
+                creatorId: task.createdById,
+                assigneeId: task.assigneeId,
+                creatorName: task.creator?.name,
+                assigneeName: task.assignee?.name,
+                loggedUserId: userId,
+                isAdmin,
+                isCreator,
+                canEditDelete
+            });
+            
+            // Créer les boutons d'action en fonction des permissions
+            const actionButtons = `
+                <button type="button" class="task-action history-task" title="Historique">📋</button>
+                ${canEditDelete ? `<button type="button" class="task-action edit-task" title="Modifier">✏️</button>` : ''}
+                ${canEditDelete ? `<button type="button" class="task-action delete-task" title="Supprimer">🗑️</button>` : ''}
+            `;
+            
             // Créer le contenu de la carte
             card.innerHTML = `
                 <div class="task-header">
                     <span class="task-priority priority-${task.priority.toLowerCase()}">${task.priority}</span>
                     <div class="task-actions">
-                        <button type="button" class="task-action history-task" title="Historique">📋</button>
-                        <button type="button" class="task-action edit-task" title="Modifier">✏️</button>
-                        <button type="button" class="task-action delete-task" title="Supprimer">🗑️</button>
+                        ${actionButtons}
                     </div>
                 </div>
                 <h3 class="task-title">${task.title}</h3>
@@ -236,7 +275,8 @@ if (window.todoAppInitialized) {
                     <span class="due-date-value">${formattedDueDate}</span>
                 </div>
                 <div class="task-footer">
-                    <div class="task-assignee">Assigné à: ${task.assignee.name}</div>
+                    <div class="task-assignee">Assigné à: ${task.assignee ? task.assignee.name : 'Utilisateur par défaut'}</div>
+                    <div class="task-creator">Créée par: ${task.creator ? task.creator.name : 'Système'}</div>
                     <div class="task-status-actions">
                         ${getStatusButtons(task.status, task.id)}
                     </div>
@@ -384,6 +424,8 @@ if (window.todoAppInitialized) {
                     .catch(error => {
                         if (error.message === 'AUTH_ERROR') {
                             handleAuthError(error);
+                        } else if (error.message === 'FORBIDDEN_ERROR') {
+                            handleForbiddenError(error);
                         } else {
                             console.error('Erreur:', error);
                             showNotification('Erreur lors du déplacement de la tâche', 'error');
@@ -419,6 +461,8 @@ if (window.todoAppInitialized) {
                 .catch(error => {
                     if (error.message === 'AUTH_ERROR') {
                         handleAuthError(error);
+                    } else if (error.message === 'FORBIDDEN_ERROR') {
+                        handleForbiddenError(error);
                     } else {
                         console.error('Erreur:', error);
                         showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
@@ -456,6 +500,8 @@ if (window.todoAppInitialized) {
                     .catch(error => {
                         if (error.message === 'AUTH_ERROR') {
                             handleAuthError(error);
+                        } else if (error.message === 'FORBIDDEN_ERROR') {
+                            handleForbiddenError(error);
                         } else {
                             console.error('Erreur:', error);
                             showNotification('Erreur lors de la suppression de la tâche', 'error');
