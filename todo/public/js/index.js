@@ -3,6 +3,27 @@ let isProcessing = false;
 let isInitialized = false;
 let isEventHandled = false; // Variable pour éviter les doubles événements
 
+// Fonction pour gérer les erreurs d'authentification et rediriger si nécessaire
+function handleAuthError(error) {
+    console.error('Erreur d\'authentification:', error);
+    showNotification('Veuillez vous connecter pour effectuer cette action', 'error');
+    // Redirection vers la page de connexion après un court délai
+    setTimeout(() => {
+        window.location.href = '/login';
+    }, 1500);
+}
+
+// Fonction pour vérifier si une réponse API contient une erreur d'authentification
+function checkAuthError(response) {
+    if (!response.ok) {
+        if (response.status === 401) {
+            throw new Error('AUTH_ERROR');
+        }
+        throw new Error('API_ERROR');
+    }
+    return response.json();
+}
+
 // Vérifier si l'application a déjà été initialisée
 if (window.todoAppInitialized) {
     console.log('Application déjà initialisée, évitement de la double initialisation');
@@ -31,7 +52,16 @@ if (window.todoAppInitialized) {
         // Gestionnaire pour le bouton "Nouvelle tâche"
         if (newTaskBtn) {
             newTaskBtn.addEventListener('click', () => {
-                openTaskPopup();
+                try {
+                    openTaskPopup();
+                } catch (error) {
+                    if (error.message === 'AUTH_ERROR') {
+                        handleAuthError(error);
+                    } else {
+                        console.error('Erreur:', error);
+                        showNotification('Une erreur est survenue', 'error');
+                    }
+                }
             });
         }
         
@@ -125,12 +155,7 @@ if (window.todoAppInitialized) {
             
             // Récupérer les tâches filtrées et triées
             fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erreur lors de la récupération des tâches');
-                    }
-                    return response.json();
-                })
+                .then(response => checkAuthError(response))
                 .then(tasks => {
                     // Regrouper les tâches par statut
                     const tasksByStatus = {
@@ -156,8 +181,12 @@ if (window.todoAppInitialized) {
                     attachEventHandlers();
                 })
                 .catch(error => {
-                    console.error('Erreur:', error);
-                    showNotification('Erreur lors du chargement des tâches', 'error');
+                    if (error.message === 'AUTH_ERROR') {
+                        handleAuthError(error);
+                    } else {
+                        console.error('Erreur:', error);
+                        showNotification('Erreur lors du chargement des tâches', 'error');
+                    }
                 });
         }
         
@@ -330,12 +359,7 @@ if (window.todoAppInitialized) {
             if (newStatus) {
                 // Récupérer les données actuelles de la tâche
                 fetch(`/api/tasks/${taskId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Erreur lors de la récupération de la tâche');
-                        }
-                        return response.json();
-                    })
+                    .then(response => checkAuthError(response))
                     .then(task => {
                         // Mettre à jour le statut
                         return fetch(`/api/tasks/${taskId}`, {
@@ -349,20 +373,21 @@ if (window.todoAppInitialized) {
                             })
                         });
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Erreur lors de la mise à jour de la tâche');
-                        }
-                        return response.json();
-                    })
+                    .then(response => checkAuthError(response))
                     .then(() => {
                         // Recharger les tâches
                         loadTasks();
+                        
+                        // Afficher une notification
                         showNotification(`Tâche déplacée vers "${newStatus}"`, 'success');
                     })
                     .catch(error => {
-                        console.error('Erreur:', error);
-                        showNotification('Erreur lors du déplacement de la tâche', 'error');
+                        if (error.message === 'AUTH_ERROR') {
+                            handleAuthError(error);
+                        } else {
+                            console.error('Erreur:', error);
+                            showNotification('Erreur lors du déplacement de la tâche', 'error');
+                        }
                     });
             }
         }
@@ -385,21 +410,19 @@ if (window.todoAppInitialized) {
             
             // Récupérer les données de la tâche
             fetch(`/api/tasks/${taskId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('Erreur HTTP:', response.status, response.statusText);
-                        throw new Error(`Erreur lors de la récupération de la tâche (${response.status})`);
-                    }
-                    return response.json();
-                })
+                .then(response => checkAuthError(response))
                 .then(task => {
                     console.log('Tâche récupérée:', task);
                     // Ouvrir le popup avec les données de la tâche
                     openTaskPopup(task);
                 })
                 .catch(error => {
-                    console.error('Erreur détaillée:', error);
-                    showNotification(`Erreur: ${error.message}`, 'error');
+                    if (error.message === 'AUTH_ERROR') {
+                        handleAuthError(error);
+                    } else {
+                        console.error('Erreur:', error);
+                        showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
+                    }
                 });
         }
         
@@ -423,22 +446,20 @@ if (window.todoAppInitialized) {
                 fetch(`/api/tasks/${taskId}`, {
                     method: 'DELETE'
                 })
-                    .then(response => {
-                        if (!response.ok) {
-                            console.error('Erreur HTTP:', response.status, response.statusText);
-                            throw new Error(`Erreur lors de la suppression de la tâche (${response.status})`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('Tâche supprimée:', data);
+                    .then(response => checkAuthError(response))
+                    .then(() => {
+                        console.log('Tâche supprimée');
                         // Recharger les tâches
                         loadTasks();
                         showNotification('Tâche supprimée avec succès', 'success');
                     })
                     .catch(error => {
-                        console.error('Erreur détaillée:', error);
-                        showNotification(`Erreur: ${error.message}`, 'error');
+                        if (error.message === 'AUTH_ERROR') {
+                            handleAuthError(error);
+                        } else {
+                            console.error('Erreur:', error);
+                            showNotification('Erreur lors de la suppression de la tâche', 'error');
+                        }
                     });
             }
         }

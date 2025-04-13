@@ -73,63 +73,87 @@ function handleFormSubmitWrapper(e) {
     handleFormSubmit(e);
 }
 
-// Fonction pour ouvrir le popup
+// Vérifier si l'utilisateur est connecté avant d'autoriser certaines actions
+function checkAuthentication() {
+    const isAuthenticated = !!document.querySelector('.user-info');
+    if (!isAuthenticated) {
+        showNotification('Veuillez vous connecter pour effectuer cette action', 'error');
+        setTimeout(() => {
+            window.location.href = '/login';
+        }, 1500);
+        return false;
+    }
+    return true;
+}
+
+// Fonction pour ouvrir la popup de création/modification de tâche
 function openTaskPopup(task = null) {
-    if (isPopupProcessing) {
-        console.log('Traitement en cours, veuillez patienter...');
+    // Vérifier si l'utilisateur est connecté
+    if (!checkAuthentication()) {
         return;
     }
-    
-    console.log('=== OUVERTURE DU POPUP ===', task ? 'Mode édition' : 'Mode création');
     
     const popup = document.getElementById('task-popup');
     const form = document.getElementById('task-form');
-    const titleInput = document.getElementById('task-title');
-    const descriptionInput = document.getElementById('task-description');
-    const prioritySelect = document.getElementById('task-priority');
-    const statusSelect = document.getElementById('task-status');
-    const dueDateInput = document.getElementById('task-due-date');
+    const title = document.getElementById('popup-title');
     const submitBtn = document.getElementById('submit-task');
-    const popupTitle = document.getElementById('popup-title');
-    
-    if (!popup || !form || !titleInput || !descriptionInput || !prioritySelect || 
-        !statusSelect || !dueDateInput || !submitBtn || !popupTitle) {
-        console.error('Éléments du formulaire manquants');
-        return;
-    }
     
     // Réinitialiser le formulaire
     form.reset();
     
-    // Si on édite une tâche existante
+    // Configurer le formulaire selon le mode (création ou modification)
     if (task) {
-        popupTitle.textContent = 'Modifier la tâche';
-        submitBtn.textContent = 'Modifier';
+        // Mode modification
+        title.textContent = 'Modifier la tâche';
+        submitBtn.textContent = 'Enregistrer';
+        
+        // Remplir le formulaire avec les données de la tâche
+        document.getElementById('task-title').value = task.title;
+        document.getElementById('task-description').value = task.description;
+        document.getElementById('task-priority').value = task.priority;
+        document.getElementById('task-status').value = task.status;
+        
+        // Formater la date pour l'input datetime-local
+        const dueDate = new Date(task.dueDate);
+        const year = dueDate.getFullYear();
+        const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+        const day = String(dueDate.getDate()).padStart(2, '0');
+        const hours = String(dueDate.getHours()).padStart(2, '0');
+        const minutes = String(dueDate.getMinutes()).padStart(2, '0');
+        
+        document.getElementById('task-due-date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        
+        // Ajouter l'ID de la tâche au formulaire
         form.dataset.taskId = task.id;
-        
-        titleInput.value = task.title;
-        descriptionInput.value = task.description;
-        prioritySelect.value = task.priority;
-        statusSelect.value = task.status;
-        
-        // Formatage de la date pour l'input datetime-local
-        if (task.dueDate) {
-            const dueDate = new Date(parseInt(task.dueDate));
-            const year = dueDate.getFullYear();
-            const month = String(dueDate.getMonth() + 1).padStart(2, '0');
-            const day = String(dueDate.getDate()).padStart(2, '0');
-            const hours = String(dueDate.getHours()).padStart(2, '0');
-            const minutes = String(dueDate.getMinutes()).padStart(2, '0');
-            
-            dueDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
     } else {
-        popupTitle.textContent = 'Nouvelle tâche';
+        // Mode création
+        title.textContent = 'Nouvelle tâche';
         submitBtn.textContent = 'Créer';
-        form.dataset.taskId = '';
+        
+        // Définir des valeurs par défaut
+        document.getElementById('task-status').value = 'À faire';
+        document.getElementById('task-priority').value = 'Moyenne';
+        
+        // Supprimer l'ID de tâche du formulaire s'il existe
+        delete form.dataset.taskId;
+        
+        // Définir la date d'échéance par défaut (une semaine à partir d'aujourd'hui)
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 7);
+        dueDate.setHours(12);
+        dueDate.setMinutes(0);
+        
+        const year = dueDate.getFullYear();
+        const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+        const day = String(dueDate.getDate()).padStart(2, '0');
+        const hours = String(dueDate.getHours()).padStart(2, '0');
+        const minutes = String(dueDate.getMinutes()).padStart(2, '0');
+        
+        document.getElementById('task-due-date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
     }
     
-    popup.style.display = 'block';
+    // Afficher la popup
+    popup.classList.add('active');
 }
 
 // Fonction pour fermer le popup
@@ -286,6 +310,73 @@ async function handleFormSubmit(e) {
         console.log('=== FIN DU TRAITEMENT DU FORMULAIRE ===');
         isPopupProcessing = false;
     }
+}
+
+// Fonction pour afficher la popup d'historique
+function showHistoryPopup(history) {
+    // Vérifier si l'utilisateur est connecté
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    const popup = document.getElementById('history-popup');
+    const tableBody = document.getElementById('history-table-body');
+    
+    // Vider le tableau
+    tableBody.innerHTML = '';
+    
+    // Remplir le tableau avec l'historique
+    history.forEach(entry => {
+        const row = document.createElement('tr');
+        
+        // Formater la date
+        const date = new Date(Number(entry.timestamp));
+        const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        
+        row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td>${entry.field}</td>
+            <td>${entry.oldValue || '-'}</td>
+            <td>${entry.newValue || '-'}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Afficher la popup
+    popup.classList.add('active');
+}
+
+// Fonction pour fermer la popup de tâche
+function closeTaskPopup() {
+    const popup = document.getElementById('task-popup');
+    popup.classList.remove('active');
+}
+
+// Fonction pour afficher une notification
+function showNotification(message, type = 'info') {
+    // Si la fonction existe déjà dans index.js, ne pas la redéfinir
+    if (window.showNotification && typeof window.showNotification === 'function') {
+        window.showNotification(message, type);
+        return;
+    }
+    
+    const container = document.getElementById('notifications-container');
+    if (!container) return;
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    container.appendChild(notification);
+    
+    // Faire disparaître après 3 secondes
+    setTimeout(() => {
+        notification.classList.add('hide');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 }
 
 // Rendre les fonctions accessibles globalement
