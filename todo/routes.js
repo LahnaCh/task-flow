@@ -36,9 +36,24 @@ router.get("/", async (request, response) => {
 // Route pour obtenir la liste des tâches avec filtres optionnels
 router.get("/api/tasks", ensureAuthenticated, async (request, response) => {
     try {
-        const { priority, status, sortBy, sortOrder } = request.query;
-        const tasks = await getTasks({ priority, status, sortBy, sortOrder });
-        return response.status(200).json(tasks);
+        const tasks = await getTasks();
+        
+        console.log('==== DONNÉES DES TÂCHES ENVOYÉES ====', {
+            tasks: tasks.map(task => ({
+                id: task.id,
+                title: task.title,
+                createdById: task.createdById,
+                creator: task.creator,
+                assignee: task.assignee
+            })),
+            user: {
+                id: request.user.id,
+                name: request.user.name,
+                role: request.user.role
+            }
+        });
+        
+        return response.json(tasks);
     } catch (error) {
         console.error("Erreur lors de la récupération des tâches:", error);
         return response.status(500).json({

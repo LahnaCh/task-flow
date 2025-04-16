@@ -3,6 +3,100 @@ let isProcessing = false;
 let isInitialized = false;
 let isEventHandled = false; // Variable pour éviter les doubles événements
 
+
+//function pour le message de suppression 
+function showCustomConfirm(message) {
+    return new Promise((resolve) => {
+        // Créer l'overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = 0;
+        overlay.style.left = 0;
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = 1000;
+        overlay.style.backdropFilter = 'blur(4px)';
+
+        // Créer la boîte de confirmation
+        const box = document.createElement('div');
+        box.style.backgroundColor = '#ffffff';
+        box.style.padding = '30px 20px';
+        box.style.borderRadius = '12px';
+        box.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)';
+        box.style.textAlign = 'center';
+        box.style.minWidth = '300px';
+        box.style.maxWidth = '90%';
+        box.style.fontFamily = 'Arial, sans-serif';
+        box.style.animation = 'fadeIn 0.3s ease';
+
+        // Message
+        const msg = document.createElement('p');
+        msg.textContent = message;
+        msg.style.marginBottom = '20px';
+        msg.style.fontSize = '16px';
+        msg.style.color = '#333';
+
+        // Boutons
+        const yesBtn = document.createElement('button');
+        yesBtn.textContent = 'Oui';
+        yesBtn.style.padding = '10px 20px';
+        yesBtn.style.margin = '0 10px';
+        yesBtn.style.border = 'none';
+        yesBtn.style.borderRadius = '5px';
+        yesBtn.style.backgroundColor = '#28a745';
+        yesBtn.style.color = '#fff';
+        yesBtn.style.cursor = 'pointer';
+        yesBtn.style.fontSize = '14px';
+
+        const noBtn = document.createElement('button');
+        noBtn.textContent = 'Non';
+        noBtn.style.padding = '10px 20px';
+        noBtn.style.margin = '0 10px';
+        noBtn.style.border = 'none';
+        noBtn.style.borderRadius = '5px';
+        noBtn.style.backgroundColor = '#dc3545';
+        noBtn.style.color = '#fff';
+        noBtn.style.cursor = 'pointer';
+        noBtn.style.fontSize = '14px';
+
+        // Animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
+            button:hover {
+                opacity: 0.9;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Ajouter tout à la boîte
+        box.appendChild(msg);
+        box.appendChild(yesBtn);
+        box.appendChild(noBtn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+
+        // Gestion des clics
+        yesBtn.onclick = () => {
+            document.body.removeChild(overlay);
+            resolve(true);
+        };
+        noBtn.onclick = () => {
+            document.body.removeChild(overlay);
+            resolve(false);
+        };
+    });
+}
+
+
+
 // Fonction pour gérer les erreurs d'authentification et rediriger si nécessaire
 function handleAuthError(error) {
     console.error('Erreur d\'authentification:', error);
@@ -219,10 +313,24 @@ if (window.todoAppInitialized) {
         
         // Fonction pour créer une carte de tâche
         function createTaskCard(task) {
+            console.log('==== CRÉATION DE CARTE DE TÂCHE ====', {
+                taskId: task.id,
+                taskData: task,
+                createdById: task.createdById,
+                creator: task.creator,
+                assignee: task.assignee
+            });
+            
             const card = document.createElement('div');
             card.className = 'task-card';
             card.dataset.id = task.id;
-            card.dataset.creatorId = task.createdById || '';
+            
+            // S'assurer que createdById est un nombre valide
+            const creatorId = task.createdById ? parseInt(task.createdById) : null;
+            if (isNaN(creatorId)) {
+                console.error('Erreur: createdById invalide pour la tâche', task);
+            }
+            card.dataset.creatorId = creatorId || '';
             
             // Formater la date d'échéance
             const dueDate = new Date(task.dueDate);
@@ -235,7 +343,14 @@ if (window.todoAppInitialized) {
             
             // Récupérer l'ID de l'utilisateur connecté depuis un attribut data
             const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
-            const creatorId = task.createdById ? parseInt(task.createdById) : null;
+            
+            console.log('==== DONNÉES DE L\'UTILISATEUR CONNECTÉ ====', {
+                userInfo: userInfo ? userInfo.innerHTML : 'Non trouvé',
+                userId: userId,
+                userRole: isAdmin ? 'admin' : 'user',
+                creatorId: creatorId,
+                isCreator: userId === creatorId
+            });
             
             // Vérifier si l'utilisateur est le créateur ou un admin
             const isCreator = userId === creatorId;
@@ -450,52 +565,45 @@ if (window.todoAppInitialized) {
                 return;
             }
             
-            // Vérifier les permissions directement depuis les attributs data de la carte
-            const creatorId = parseInt(taskCard.dataset.creatorId);
-            
-            // Obtenir l'utilisateur connecté et son rôle
-            const userInfo = document.querySelector('.user-info');
-            const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
-            const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
-            
-            // Vérifier si l'utilisateur est le créateur ou un admin
-            const isCreator = userId === creatorId;
-            const canEdit = isAdmin || isCreator;
-            
-            console.log('==== VÉRIFICATION PRÉALABLE POUR ÉDITION ====', {
-                taskId: taskId,
-                creatorId: creatorId,
-                userId: userId,
-                isAdmin: isAdmin,
-                isCreator: isCreator,
-                canEdit: canEdit
-            });
-            
-            // Si l'utilisateur n'a pas le droit d'éditer, afficher une notification et ne pas ouvrir le popup
-            if (!canEdit) {
-                showNotification('Vous n\'êtes pas autorisé à modifier cette tâche. Seul le créateur ou un administrateur peut la modifier.', 'error');
-                return;
-            }
-            
-            console.log('Édition de la tâche avec ID:', taskId);
-            
-            // Récupérer les données de la tâche
+            // Récupérer la tâche complète depuis l'API pour avoir les bonnes données
             fetch(`/api/tasks/${taskId}`)
                 .then(response => checkAuthError(response))
                 .then(task => {
-                    console.log('Tâche récupérée:', task);
-                    // Ouvrir le popup avec les données de la tâche
+                    // Vérifier les permissions avec les données complètes de la tâche
+                    const creatorId = task.createdById ? parseInt(task.createdById) : null;
+                    
+                    // Obtenir l'utilisateur connecté et son rôle
+                    const userInfo = document.querySelector('.user-info');
+                    const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
+                    const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
+                    
+                    // Vérifier si l'utilisateur est le créateur ou un admin
+                    const isCreator = userId === creatorId;
+                    const canEdit = isAdmin || isCreator;
+                    
+                    console.log('==== DÉTAILS DE L\'UTILISATEUR ET DE LA TÂCHE ====', {
+                        userInfo: userInfo ? userInfo.innerHTML : 'Non trouvé',
+                        userId: userId,
+                        userRole: isAdmin ? 'admin' : 'user',
+                        taskId: taskId,
+                        taskCreatorId: creatorId,
+                        isCreator: isCreator,
+                        isAdmin: isAdmin,
+                        canEdit: canEdit
+                    });
+                    
+                    // Si l'utilisateur n'a pas le droit d'éditer, afficher une notification et ne pas ouvrir le popup
+                    if (!canEdit) {
+                        showNotification('Vous n\'êtes pas autorisé à modifier cette tâche. Seul le créateur ou un administrateur peut la modifier.', 'error');
+                        return;
+                    }
+                    
+                    // Ouvrir le popup d'édition
                     openTaskPopup(task);
                 })
                 .catch(error => {
-                    if (error.message === 'AUTH_ERROR') {
-                        handleAuthError(error);
-                    } else if (error.message === 'FORBIDDEN_ERROR') {
-                        handleForbiddenError(error);
-                    } else {
-                        console.error('Erreur:', error);
-                        showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
-                    }
+                    console.error('Erreur lors de la récupération des détails de la tâche:', error);
+                    showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
                 });
         }
         
@@ -513,58 +621,55 @@ if (window.todoAppInitialized) {
                 return;
             }
             
-            // Vérifier les permissions directement depuis les attributs data de la carte
-            const creatorId = parseInt(taskCard.dataset.creatorId);
-            
-            // Obtenir l'utilisateur connecté et son rôle
-            const userInfo = document.querySelector('.user-info');
-            const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
-            const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
-            
-            // Vérifier si l'utilisateur est le créateur ou un admin
-            const isCreator = userId === creatorId;
-            const canDelete = isAdmin || isCreator;
-            
-            console.log('==== VÉRIFICATION PRÉALABLE POUR SUPPRESSION ====', {
-                taskId: taskId,
-                creatorId: creatorId,
-                userId: userId,
-                isAdmin: isAdmin,
-                isCreator: isCreator,
-                canDelete: canDelete
-            });
-            
-            // Si l'utilisateur n'a pas le droit de supprimer, afficher une notification
-            if (!canDelete) {
-                showNotification('Vous n\'êtes pas autorisé à supprimer cette tâche. Seul le créateur ou un administrateur peut la supprimer.', 'error');
-                return;
-            }
-            
-            console.log('Suppression de la tâche avec ID:', taskId);
-            
-            if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
-                fetch(`/api/tasks/${taskId}`, {
-                    method: 'DELETE'
-                })
-                    .then(response => checkAuthError(response))
-                    .then(() => {
-                        console.log('Tâche supprimée');
-                        // Recharger les tâches
-                        loadTasks();
-                        showNotification('Tâche supprimée avec succès', 'success');
-                    })
-                    .catch(error => {
-                        if (error.message === 'AUTH_ERROR') {
-                            handleAuthError(error);
-                        } else if (error.message === 'FORBIDDEN_ERROR') {
-                            handleForbiddenError(error);
-                        } else {
-                            console.error('Erreur:', error);
-                            showNotification('Erreur lors de la suppression de la tâche', 'error');
+            // Récupérer la tâche complète depuis l'API pour avoir les bonnes données
+            fetch(`/api/tasks/${taskId}`)
+                .then(response => checkAuthError(response))
+                .then(task => {
+                    // Vérifier les permissions avec les données complètes de la tâche
+                    const creatorId = task.createdById ? parseInt(task.createdById) : null;
+                    
+                    // Obtenir l'utilisateur connecté et son rôle
+                    const userInfo = document.querySelector('.user-info');
+                    const isAdmin = userInfo && userInfo.innerHTML.includes('fa-crown');
+                    const userId = userInfo ? parseInt(userInfo.dataset.userId) : null;
+                    
+                    // Vérifier si l'utilisateur est le créateur ou un admin
+                    const isCreator = userId === creatorId;
+                    const canDelete = isAdmin || isCreator;
+                    
+                    // Si l'utilisateur n'a pas le droit de supprimer, afficher une notification
+                    if (!canDelete) {
+                        showNotification('Vous n\'êtes pas autorisé à supprimer cette tâche. Seul le créateur ou un administrateur peut la supprimer.', 'error');
+                        return;
+                    }
+                    
+                    // Demander confirmation avant de supprimer avec le popup personnalisé
+                    showCustomConfirm(`Êtes-vous sûr de vouloir supprimer la tâche "${task.title}" ?`).then((confirmed) => {
+                        if (confirmed) {
+                            // Supprimer la tâche
+                            fetch(`/api/tasks/${taskId}`, {
+                                method: 'DELETE'
+                            })
+                            .then(response => checkAuthError(response))
+                            .then(result => {
+                                showNotification(`Tâche "${task.title}" supprimée avec succès!`, 'success');
+                                // Recharger les tâches
+                                loadTasks();
+                            })
+                            .catch(error => {
+                                console.error('Erreur lors de la suppression de la tâche:', error);
+                                showNotification('Erreur lors de la suppression de la tâche', 'error');
+                            });
                         }
                     });
-            }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des détails de la tâche:', error);
+                    showNotification('Erreur lors de la récupération des détails de la tâche', 'error');
+                });
         }
+
+        
         
         // Gestionnaire pour l'historique de tâche
         function handleHistoryTask(e) {

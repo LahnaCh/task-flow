@@ -83,17 +83,26 @@ export const getTaskById = async (id) => {
 export const createTask = async (taskData) => {
     const { title, description, priority, status, dueDate, assigneeId = 1, createdById } = taskData;
     
+    // Validation des IDs
+    if (!createdById) {
+        throw new Error("L'ID du créateur est requis");
+    }
+    
+    // S'assurer que les IDs sont des nombres valides
+    const assigneeIdInt = typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId || '1');
+    const createdByIdInt = typeof createdById === 'number' ? createdById : parseInt(createdById);
+    
+    if (isNaN(createdByIdInt)) {
+        throw new Error("L'ID du créateur doit être un nombre valide");
+    }
+    
     console.log("==== DONNÉES DE CRÉATION DE TÂCHE ====", { 
         title, 
-        assigneeId: typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId),
-        createdById: typeof createdById === 'number' ? createdById : parseInt(createdById),
+        assigneeId: assigneeIdInt,
+        createdById: createdByIdInt,
         typesOriginaux: `assigneeId: ${typeof assigneeId}, createdById: ${typeof createdById}`,
         dueDate: typeof dueDate === 'string' ? dueDate : new Date(dueDate).toISOString()
     });
-    
-    // Préparation des données pour la création (en s'assurant que les IDs sont des nombres)
-    const assigneeIdInt = typeof assigneeId === 'number' ? assigneeId : parseInt(assigneeId || '1');
-    const createdByIdInt = typeof createdById === 'number' ? createdById : parseInt(createdById || assigneeIdInt.toString());
     
     // Validation des champs obligatoires
     if (!title || !description || !priority || !status || !dueDate) {
